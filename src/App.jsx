@@ -28,14 +28,24 @@ function ObamaSphere() {
 }
 
 function Ground() {
-  const texture = useLoader(THREE.TextureLoader, '/ground.jpg')
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(4, 4)
+  const colorMap = useLoader(THREE.TextureLoader, '/ground.jpg')
+  const heightMap = useLoader(THREE.TextureLoader, '/ground.jpg')
+
+  colorMap.wrapS = colorMap.wrapT = THREE.RepeatWrapping
+  heightMap.wrapS = heightMap.wrapT = THREE.RepeatWrapping
+
+  colorMap.repeat.set(5, 5)
+  heightMap.repeat.set(5, 5)
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, 0, 0]}>
-      <planeGeometry args={[20, 20, 200, 200]} />
-      <meshStandardMaterial map={texture} roughness={1} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[20, 20, 256, 256]} />
+      <meshStandardMaterial
+        map={colorMap}
+        displacementMap={heightMap}
+        displacementScale={0.8}
+        roughness={1}
+      />
     </mesh>
   )
 }
