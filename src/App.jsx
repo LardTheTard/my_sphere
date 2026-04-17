@@ -19,9 +19,9 @@ function ObamaSphere() {
     <mesh ref={meshRef} position={[0, 1.3, 0]} castShadow>
       <sphereGeometry args={[0.75, 64, 64]} />
       <meshStandardMaterial
-      map={texture}
-      roughness={0.85}
-      metalness={0.05}
+        map={texture}
+        roughness={0.85}
+        metalness={0.05}
       />
     </mesh>
   )
@@ -43,7 +43,7 @@ function Ground() {
       <meshStandardMaterial
         map={colorMap}
         displacementMap={heightMap}
-        displacementScale={0.8}
+        displacementScale={0.5}
         roughness={1}
       />
     </mesh>
