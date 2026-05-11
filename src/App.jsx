@@ -1,7 +1,7 @@
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { OrbitControls, Float } from '@react-three/drei'
 import * as THREE from 'three'
-import { useRef } from 'react'
+import { useRef } from 'react'  
 
 function ObamaSphere() {
   const meshRef = useRef()
