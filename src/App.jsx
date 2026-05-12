@@ -318,6 +318,10 @@ function makePlanetTexture(palette, seed, style = {}, width = 512, height = 256)
   return canvas
 }
 
+function shortestAngleDelta(from, to) {
+  return Math.atan2(Math.sin(to - from), Math.cos(to - from))
+}
+
 function disposeScene(scene, renderer) {
   scene.traverse((object) => {
     if (object.geometry) {
@@ -410,6 +414,7 @@ export default function App() {
   const scopeActiveRef = useRef(false)
   const discoveredIdsRef = useRef(new Set())
   const discoveryEventsRef = useRef([])
+  const cameraTargetRef = useRef(null)
   const [scopeActiveState, setScopeActiveState] = useState(false)
   const [scopeProximity, setScopeProximity] = useState(0)
   const scopeProximityRef = useRef(0)
@@ -430,10 +435,20 @@ export default function App() {
     if (!id) return
 
     const firstDiscovery = !discoveredIdsRef.current.has(id)
-    discoveredIdsRef.current.add(id)
-    discoveryEventsRef.current.push({ id, firstDiscovery })
+    if (firstDiscovery) {
+      discoveredIdsRef.current.add(id)
+      discoveryEventsRef.current.push({ id, firstDiscovery: true })
+    }
     setActiveDiscovery(id)
   }, [])
+
+  const selectDiscovery = useCallback(
+    (id) => {
+      cameraTargetRef.current = id
+      revealDiscovery(id)
+    },
+    [revealDiscovery],
+  )
 
   useEffect(() => {
     const mount = mountRef.current
@@ -767,6 +782,135 @@ export default function App() {
       campfire.add(stone)
     }
 
+    const signX = -1.62
+    const signZ = -1.34
+    const signGroup = new THREE.Group()
+    signGroup.position.set(signX, terrainHeight(signX, signZ), signZ)
+    signGroup.rotation.y = 0.18
+    scene.add(signGroup)
+
+    const signTopPlankMaterial = new THREE.MeshStandardMaterial({
+      color: 0x75431f,
+      roughness: 0.92,
+      metalness: 0,
+    })
+    const signBottomPlankMaterial = new THREE.MeshStandardMaterial({
+      color: 0x5f351b,
+      roughness: 0.94,
+      metalness: 0,
+    })
+    const signPostMaterial = new THREE.MeshStandardMaterial({
+      color: 0x4b2814,
+      roughness: 0.95,
+      metalness: 0,
+    })
+    const signGrainMaterial = new THREE.MeshBasicMaterial({
+      color: 0x241209,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false,
+      toneMapped: false,
+      fog: false,
+    })
+    const signTextMaterial = new THREE.MeshBasicMaterial({
+      color: 0x050505,
+      toneMapped: false,
+      fog: false,
+    })
+    const signPostGeometry = new THREE.CylinderGeometry(0.055, 0.075, 1.05, 8)
+    const signPost = new THREE.Mesh(signPostGeometry, signPostMaterial)
+    signPost.position.set(-0.14, 0.42, -0.04)
+    signPost.rotation.z = -0.24
+    signPost.castShadow = true
+    signPost.receiveShadow = true
+    signGroup.add(signPost)
+
+    const signBoardGroup = new THREE.Group()
+    signBoardGroup.position.set(0, 0.91, 0)
+    signBoardGroup.rotation.z = -0.17
+    signGroup.add(signBoardGroup)
+
+    const topPlank = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.26, 0.1), signTopPlankMaterial)
+    topPlank.position.set(0.02, 0.08, 0)
+    topPlank.rotation.z = -0.025
+    topPlank.castShadow = true
+    topPlank.receiveShadow = true
+    signBoardGroup.add(topPlank)
+
+    const bottomPlank = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.3, 0.1), signBottomPlankMaterial)
+    bottomPlank.position.set(-0.04, -0.14, -0.006)
+    bottomPlank.rotation.z = 0.015
+    bottomPlank.castShadow = true
+    bottomPlank.receiveShadow = true
+    signBoardGroup.add(bottomPlank)
+
+    const signRand = seededRandom(805)
+    const grainGeometry = new THREE.BoxGeometry(1, 1, 0.009)
+    const addGrain = (yMin, yMax, count, maxWidth) => {
+      for (let i = 0; i < count; i += 1) {
+        const grain = new THREE.Mesh(grainGeometry, signGrainMaterial)
+        const length = 0.28 + signRand() * maxWidth
+        const thickness = 0.005 + signRand() * 0.009
+        grain.position.set((signRand() - 0.5) * 1.2, yMin + signRand() * (yMax - yMin), 0.057)
+        grain.scale.set(length, thickness, 1)
+        grain.rotation.z = (signRand() - 0.5) * 0.12
+        signBoardGroup.add(grain)
+      }
+    }
+    addGrain(-0.02, 0.18, 16, 1.28)
+    addGrain(-0.26, -0.04, 18, 1.36)
+
+    const letterBarGeometry = new THREE.BoxGeometry(1, 1, 0.018)
+    const addLetterBar = (x, y, width, height, rotation = 0) => {
+      const bar = new THREE.Mesh(letterBarGeometry, signTextMaterial)
+      bar.position.set(x, y, 0.066)
+      bar.scale.set(width, height, 1)
+      bar.rotation.z = rotation
+      signBoardGroup.add(bar)
+    }
+    const addBlockLetter = (letter, x, y, scale = 1) => {
+      const t = 0.022 * scale
+      const w = 0.12 * scale
+      const h = 0.2 * scale
+      const halfW = w / 2
+      const halfH = h / 2
+
+      if (letter === 'L') {
+        addLetterBar(x - halfW, y, t, h)
+        addLetterBar(x - halfW / 2, y - halfH, w, t)
+      }
+      if (letter === 'O') {
+        addLetterBar(x - halfW, y, t, h)
+        addLetterBar(x + halfW, y, t, h)
+        addLetterBar(x, y + halfH, w, t)
+        addLetterBar(x, y - halfH, w, t)
+      }
+      if (letter === 'K') {
+        addLetterBar(x - halfW, y, t, h)
+        addLetterBar(x + halfW * 0.35, y + halfH * 0.32, t, h * 0.62, -0.72)
+        addLetterBar(x + halfW * 0.35, y - halfH * 0.32, t, h * 0.62, 0.72)
+      }
+      if (letter === 'U') {
+        addLetterBar(x - halfW, y + t * 0.8, t, h - t * 1.6)
+        addLetterBar(x + halfW, y + t * 0.8, t, h - t * 1.6)
+        addLetterBar(x, y - halfH, w, t)
+      }
+      if (letter === 'P') {
+        addLetterBar(x - halfW, y, t, h)
+        addLetterBar(x, y + halfH, w, t)
+        addLetterBar(x, y, w, t)
+        addLetterBar(x + halfW, y + halfH * 0.5, t, h * 0.5)
+      }
+    }
+    ;[
+      ['L', -0.29, 0.08],
+      ['O', -0.1, 0.08],
+      ['O', 0.1, 0.08],
+      ['K', 0.31, 0.08],
+      ['U', -0.1, -0.15],
+      ['P', 0.1, -0.15],
+    ].forEach(([letter, x, y]) => addBlockLetter(letter, x, y, 0.92))
+
     const flameGroup = new THREE.Group()
     campfire.add(flameGroup)
 
@@ -978,16 +1122,18 @@ export default function App() {
     skyGroup.add(burstParticles)
 
     const spawnDiscoveryBurst = (planet, index, firstDiscovery) => {
+      if (!firstDiscovery) return
+
       const discovery = DISCOVERIES[index]
       const color = new THREE.Color(discovery.hex)
-      const burstSize = firstDiscovery ? 230 : 90
+      const burstSize = 230
       const visibilityBoost = discovery.visibilityBoost ?? 1
       planet.userData.discovered = true
-      planet.userData.discoveryGlow = Math.max(planet.userData.discoveryGlow, firstDiscovery ? 2.4 : 1.35)
+      planet.userData.discoveryGlow = Math.max(planet.userData.discoveryGlow, 2.4)
       planet.material.color.setRGB(1 * visibilityBoost, 1 * visibilityBoost, 1 * visibilityBoost)
       planet.userData.fullBrightShell.material.opacity = Math.max(
         planet.userData.fullBrightShell.material.opacity,
-        Math.min(0.5, (firstDiscovery ? 0.3 : 0.2) * visibilityBoost),
+        Math.min(0.5, 0.3 * visibilityBoost),
       )
 
       for (let i = 0; i < burstSize; i += 1) {
@@ -1042,6 +1188,7 @@ export default function App() {
 
     let yaw = 0
     let pitch = -0.17
+    let cameraPanTarget = null
     let localFocus = null
     const scopeSparkTimes = new Map()
     let hasSetIgnited = false
@@ -1054,10 +1201,12 @@ export default function App() {
       const lastSpark = scopeSparkTimes.get(id) ?? -Infinity
       if (elapsed - lastSpark < 1.2) return
 
-      scopeSparkTimes.set(id, elapsed)
       const firstDiscovery = !discoveredIdsRef.current.has(id)
+      if (!firstDiscovery) return
+
+      scopeSparkTimes.set(id, elapsed)
       discoveredIdsRef.current.add(id)
-      discoveryEventsRef.current.push({ id, firstDiscovery })
+      discoveryEventsRef.current.push({ id, firstDiscovery: true })
     }
 
     const setFocus = (id, elapsed) => {
@@ -1104,6 +1253,7 @@ export default function App() {
       drag.x = event.clientX
       drag.y = event.clientY
       drag.moved = 0
+      cameraPanTarget = null
       mount.setPointerCapture(event.pointerId)
     }
 
@@ -1223,6 +1373,32 @@ export default function App() {
         sparkPositions[i * 3 + 2] = Math.sin(seed.angle + elapsed * 0.35) * (seed.radius + drift * 0.42)
       }
       sparkGeometry.attributes.position.needsUpdate = true
+
+      const requestedTargetId = cameraTargetRef.current
+      if (requestedTargetId) {
+        cameraTargetRef.current = null
+        const planetIndex = DISCOVERIES.findIndex((discovery) => discovery.id === requestedTargetId)
+        if (planetIndex >= 0) {
+          targetDirection.copy(planetMeshes[planetIndex].position).sub(camera.position).normalize()
+          cameraPanTarget = {
+            yaw: Math.atan2(-targetDirection.x, -targetDirection.z),
+            pitch: THREE.MathUtils.clamp(Math.asin(targetDirection.y), -0.65, 1.18),
+          }
+        }
+      }
+
+      if (cameraPanTarget) {
+        const panEase = 1 - Math.exp(-dt * 2.8)
+        const yawDelta = shortestAngleDelta(yaw, cameraPanTarget.yaw)
+        yaw += yawDelta * panEase
+        pitch = THREE.MathUtils.lerp(pitch, cameraPanTarget.pitch, panEase)
+
+        if (Math.abs(yawDelta) < 0.004 && Math.abs(pitch - cameraPanTarget.pitch) < 0.004) {
+          yaw = cameraPanTarget.yaw
+          pitch = cameraPanTarget.pitch
+          cameraPanTarget = null
+        }
+      }
 
       const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ')
       camera.quaternion.setFromEuler(euler)
@@ -1504,7 +1680,7 @@ export default function App() {
       <PortfolioSidebar
         open={sidebarOpen}
         activeId={activeDiscovery}
-        onSelect={revealDiscovery}
+        onSelect={selectDiscovery}
         onClose={() => setSidebarOpen(false)}
       />
       <Panel discovery={activeData} onClose={() => setActiveDiscovery(null)} />
