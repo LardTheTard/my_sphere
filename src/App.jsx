@@ -11,8 +11,8 @@ const DISCOVERIES = [
     id: 'about',
     signal: 'traveler signal',
     world: 'The Quiet One',
-    title: 'Logan',
-    subtitle: 'ML engineer and creative developer',
+    title: 'Logan Zhao',
+    subtitle: 'Systems Design Engineering student at the University of Waterloo',
     color: '#7bdff2',
     hex: 0x7bdff2,
     position: [-34, 30, -66],
@@ -20,17 +20,17 @@ const DISCOVERIES = [
     palette: ['#22314f', '#476d89', '#9ed4d7', '#d8b56c'],
     planetStyle: { bands: true, spots: 3 },
     body: [
-      'I build systems where machine learning, game theory, and creative tooling overlap.',
-      'My favorite work feels like a signal coming out of the dark: brain encoding pipelines, optimization loops, visual tools, and strange interactive systems that make difficult ideas tangible.',
+      'I am a Waterloo Systems Design Engineering student aiming toward machine learning, applied AI, and intelligent tools that turn messy inputs into useful systems.',
+      'The thread through my work is creation through algorithmic design: reconstruction pipelines, game-playing agents, evolutionary search, and interfaces that make complex systems feel explorable.',
     ],
-    tags: ['Brain encoding', 'Game theory', 'Creative systems', 'Three.js'],
+    tags: ['Machine learning', 'Algorithmic design', 'Creative systems', 'Systems engineering'],
   },
   {
-    id: 'brain-encoder',
-    signal: 'deep neural echo',
+    id: 'experience',
+    signal: 'public sector relay',
     world: 'Blue Giant',
-    title: 'TribeV2 Brain Encoder',
-    subtitle: 'Multimodal prediction for fMRI activation',
+    title: 'Experience',
+    subtitle: 'Application Programmer, Ontario Government MPBSDP',
     color: '#8ef6a4',
     hex: 0x8ef6a4,
     position: [68, 38, -24],
@@ -38,17 +38,18 @@ const DISCOVERIES = [
     palette: ['#071c3d', '#115d7e', '#5fb7a1', '#e7efe2'],
     planetStyle: { rings: true, bands: true, ringTilt: 0.42 },
     body: [
-      'A full inference pipeline that predicts neural activations from audio and visual stimuli.',
-      'The system combines media preprocessing, feature extraction, alignment, and VRAM-aware model loading for 16GB GPU environments.',
+      'Built and supported automated QA tooling for Cognos BI reports using the IBM Cognos API and Playwright, helping validate 1,000+ reports per hour and protect reporting integrity.',
+      'Worked with Redshift, DBeaver SQL, AWS Lambda ETL, audit logs, and Python Excel automation to clean, transform, monitor, and prepare analytics data across large BI workflows.',
+      'Previously organized NRGHacks for 200+ attendees, led a 50+ member coding club, and designed a Rotary club website that helped increase membership.',
     ],
-    tags: ['PyTorch', 'fMRI', 'Transformers', 'CUDA'],
+    tags: ['Playwright', 'Cognos API', 'Redshift', 'AWS Lambda', 'Python', 'Leadership'],
   },
   {
-    id: 'evolution',
-    signal: 'mutation song',
+    id: 'reminiscence',
+    signal: 'memory reconstruction',
     world: 'Amber Seed',
-    title: 'Evolutionary Text Optimizer',
-    subtitle: 'Genetic search guided by local language models',
+    title: 'Reminiscence',
+    subtitle: 'iPhone video to VR-ready Gaussian splats',
     color: '#ffbd6b',
     hex: 0xffbd6b,
     position: [46, 54, 54],
@@ -56,17 +57,17 @@ const DISCOVERIES = [
     palette: ['#1d1609', '#7b3f1d', '#e39b3f', '#f6df9c'],
     planetStyle: { spots: 7, cracked: true },
     body: [
-      'A genetic algorithm loop that uses a local LLaMA model as a mutation operator.',
-      'Candidates are scored by Pearson correlation against target brainmap vectors, with tournament selection and JSON-robust mutation parsing.',
+      'Engineered an end-to-end app pipeline that converts iPhone videos into VR-ready Gaussian splats, coordinating a 9-stage workflow across SwiftUI, FastAPI, COLMAP, FastGS, and Unity.',
+      'Optimized reconstruction to run in under 2 minutes by streamlining frame extraction, sparse reconstruction, Gaussian splat training, and Unity prefab generation through Python backend automation.',
     ],
-    tags: ['Genetic algorithms', 'LLaMA', 'Ollama', 'Python'],
+    tags: ['PyTorch', 'Swift', 'Unity/C#', 'OpenXR', 'FastAPI', 'github.com/LargoLardo/reminiscence'],
   },
   {
-    id: 'poker',
-    signal: 'recursive orbit',
+    id: 'synesthesia',
+    signal: 'cross-media resonance',
     world: 'Red Hollow',
-    title: 'CFR / MCCFR Poker Solver',
-    subtitle: 'Counterfactual regret minimization for imperfect information games',
+    title: 'Synthetic Synesthesia',
+    subtitle: 'Full-stack cross-media vibe translation',
     color: '#ff7a90',
     hex: 0xff7a90,
     position: [-48, 34, 62],
@@ -74,17 +75,17 @@ const DISCOVERIES = [
     palette: ['#250c17', '#6f1e30', '#c84a51', '#f4b184'],
     planetStyle: { rings: true, spots: 4, ringTilt: -0.24 },
     body: [
-      'External sampling MCCFR implementations for Kuhn, Leduc, and Texas Holdem.',
-      'Includes card abstraction, action abstraction, multi-street handling, regret clipping, and blueprint strategy generation.',
+      'Built a full-stack cross-media app that encodes an input emotional signature, generates a matching output in another medium, and reached up to 95% emotional-response alignment using TribeV2 scoring.',
+      'Improved output quality and cut processing time by owning DataFrame construction in the TribeV2 pipeline and using an evolutionary algorithm to iteratively evolve final outputs.',
     ],
-    tags: ['CFR', 'MCCFR', 'Game theory', 'Python'],
+    tags: ['PyTorch', 'Pandas', 'MongoDB', 'React', 'FastAPI', 'github.com/LargoLardo/synthetic_synesthesia'],
   },
   {
-    id: 'visualizer',
-    signal: 'cortical shimmer',
+    id: 'chess',
+    signal: 'search tree beacon',
     world: 'Glass Archive',
-    title: 'Neural Activation Visualizer',
-    subtitle: 'Interactive WebGL surfaces for brainmap activations',
+    title: 'RL/SL Chess Engine',
+    subtitle: 'Policy/value network with MCTS/PUCT search',
     color: '#c69cff',
     hex: 0xc69cff,
     position: [-74, 44, -12],
@@ -92,17 +93,17 @@ const DISCOVERIES = [
     palette: ['#151023', '#4f3c78', '#9f7bd5', '#e1d5ff'],
     planetStyle: { bands: true, spots: 5 },
     body: [
-      'A 3D visualization tool for cortical activation maps with annotation layers and region highlighting.',
-      'It parses activation arrays, maps them to surface meshes, and supports comparison overlays with percentile-based colorscales.',
+      'Architected a full-stack RL/SL hybrid chess engine from scratch with a policy/value network and MCTS/PUCT move search, reaching expert-level 2000 Elo strength through self-play.',
+      'Improved runtime search speed by more than 8x with lazy inference batching, transposition tables, and cached board encodings for deeper lookahead under fixed move-time budgets.',
     ],
-    tags: ['Plotly', 'WebGL', 'Neuroscience', 'JavaScript'],
+    tags: ['PyTorch', 'MCTS', 'React', 'Vite', 'Flask', 'github.com/LargoLardo/lard_plays_chess'],
   },
   {
-    id: 'contact',
-    signal: 'return frequency',
+    id: 'poker',
+    signal: 'recursive orbit',
     world: 'Home Frequency',
-    title: 'Contact',
-    subtitle: 'For research, tools, and odd ideas worth building',
+    title: "Heads-up Hold'em Poker AI",
+    subtitle: 'External-sampling MCCFR solver for no-limit poker',
     color: '#f2f59f',
     hex: 0xf2f59f,
     position: [4, 66, -78],
@@ -110,9 +111,48 @@ const DISCOVERIES = [
     palette: ['#19180d', '#55501d', '#b8a94a', '#fff6b0'],
     planetStyle: { rings: true, ringTilt: 0.78 },
     body: [
-      'Open to ML research, creative coding, visualization work, and collaborations that need both engineering discipline and a little mystery.',
+      "Built a heads-up no-limit Texas Hold'em AI and solver that trained a policy capable of winning more than 10BB/hr against basic heuristics using external-sampling MCCFR with regret matching.",
+      'Engineered card abstraction through bucketing with Monte Carlo equity and potential calculations, reaching roughly 80% similarity to known solvers.',
+      'Increased training speed by more than 10x on an 8-core CPU with a multiprocessing chunk-and-merge traversal pipeline.',
     ],
-    tags: ['hello@logan.dev', 'github.com/logan', 'linkedin.com/in/logan'],
+    tags: ['NumPy', 'MCCFR', 'Plotly', 'React', 'Flask', 'github.com/LargoLardo/lard_plays_poker'],
+  },
+  {
+    id: 'education',
+    signal: 'waterloo transmission',
+    world: 'Scholar Moon',
+    title: 'Education',
+    subtitle: 'University of Waterloo, Systems Design Engineering',
+    color: '#9ee493',
+    hex: 0x9ee493,
+    position: [-26, 78, 50],
+    radius: 2.3,
+    palette: ['#0b2115', '#245d3b', '#72b36e', '#e2ffd4'],
+    planetStyle: { rings: true, bands: true, ringTilt: -0.58 },
+    body: [
+      'Bachelor of Applied Science in Systems Design Engineering at the University of Waterloo, expected 2030, with a 3.9 GPA.',
+      "Recipient of the W.J. Beynon Memorial Entrance Scholarship and President's Scholarship of Distinction.",
+    ],
+    tags: ['Systems Design Engineering', '3.9 GPA', 'Waterloo', 'Scholarships'],
+  },
+  {
+    id: 'hobbies',
+    signal: 'campfire frequency',
+    world: 'Hearth Planet',
+    title: 'Hobbies',
+    subtitle: 'Games, movement, and worlds that make curiosity feel physical',
+    color: '#ffcf87',
+    hex: 0xffcf87,
+    position: [82, 24, 44],
+    radius: 2.55,
+    palette: ['#261407', '#70411e', '#d1883e', '#ffe0a3'],
+    planetStyle: { bands: true, spots: 6 },
+    body: [
+      'Outside of building things, I enjoy badminton, chess, poker, ultimate frisbee, and games that reward exploration and patient systems thinking.',
+      'Outer Wilds is one of the major inspirations for this portfolio: the campfire, signalscope, mystery-first navigation, and feeling of looking into a huge unknown space all come from that love.',
+      'Reach me through email, LinkedIn, or GitHub if you want to talk ML, creative tools, game AI, or strange interactive projects.',
+    ],
+    tags: ['Badminton', 'Chess', 'Poker', 'Ultimate frisbee', 'Outer Wilds', 'logan.zhao@uwaterloo.ca', 'github.com/LargoLardo', 'linkedin.com/in/logan-zhao-328653232'],
   },
 ]
 
@@ -839,8 +879,9 @@ export default function App() {
       const planetMaterial = new THREE.MeshBasicMaterial({
         map: planetTexture,
         color: 0xffffff,
-        transparent: false,
-        depthWrite: true,
+        transparent: true,
+        opacity: discoveredIdsRef.current.has(discovery.id) ? 1 : 0.018,
+        depthWrite: false,
       })
       const planet = new THREE.Mesh(new THREE.SphereGeometry(discovery.radius, 48, 32), planetMaterial)
       planet.position.set(...discovery.position)
@@ -867,7 +908,7 @@ export default function App() {
       planet.userData.atmosphere = atmosphere
 
       const ring = new THREE.Mesh(
-        new THREE.RingGeometry(discovery.radius * 1.55, discovery.radius * 1.62, 96),
+        new THREE.RingGeometry(discovery.radius * 1.35, discovery.radius * 2.35, 96),
         new THREE.MeshBasicMaterial({
           color: discovery.hex,
           transparent: true,
@@ -902,11 +943,12 @@ export default function App() {
 
       const label = createTextSprite(discovery.world, discovery.color)
       label.position.copy(planet.position).add(new THREE.Vector3(0, discovery.radius * 2.1, 0))
+      label.scale.set(13, 3.25, 1)
       skyGroup.add(label)
       planetLabels.push(label)
     })
 
-    const burstCount = 2800
+    const burstCount = 900
     const burstPositions = new Float32Array(burstCount * 3)
     const burstVelocities = new Float32Array(burstCount * 3)
     const burstColors = new Float32Array(burstCount * 3)
@@ -922,7 +964,7 @@ export default function App() {
     const burstParticles = new THREE.Points(
       burstGeometry,
       new THREE.PointsMaterial({
-        size: 5.5,
+        size: 4.2,
         sizeAttenuation: false,
         vertexColors: true,
         transparent: true,
@@ -939,9 +981,9 @@ export default function App() {
     const spawnDiscoveryBurst = (planet, index, firstDiscovery) => {
       const discovery = DISCOVERIES[index]
       const color = new THREE.Color(discovery.hex)
-      const burstSize = firstDiscovery ? 820 : 360
+      const burstSize = firstDiscovery ? 230 : 90
       planet.userData.discovered = true
-      planet.userData.discoveryGlow = Math.max(planet.userData.discoveryGlow, firstDiscovery ? 3.1 : 2.05)
+      planet.userData.discoveryGlow = Math.max(planet.userData.discoveryGlow, firstDiscovery ? 2.4 : 1.35)
 
       for (let i = 0; i < burstSize; i += 1) {
         const slot = burstCursor
@@ -954,7 +996,7 @@ export default function App() {
         const dy = y
         const dz = radial * Math.sin(theta)
         const surface = discovery.radius * (1.08 + burstRand() * 0.5)
-        const speed = 8 + burstRand() * 15
+        const speed = 7 + burstRand() * 12
 
         burstPositions[slot * 3] = planet.position.x + dx * surface
         burstPositions[slot * 3 + 1] = planet.position.y + dy * surface
@@ -963,10 +1005,12 @@ export default function App() {
         burstVelocities[slot * 3 + 1] = dy * speed + burstRand() * 1.8
         burstVelocities[slot * 3 + 2] = dz * speed + (burstRand() - 0.5) * 2.4
         burstAges[slot] = 0
-        burstLifetimes[slot] = 1.35 + burstRand() * 1.65
-        burstBaseColors[slot * 3] = Math.min(4.2, color.r + 1.6 + burstRand() * 1.2)
-        burstBaseColors[slot * 3 + 1] = Math.min(4.2, color.g + 1.6 + burstRand() * 1.2)
-        burstBaseColors[slot * 3 + 2] = Math.min(4.2, color.b + 1.6 + burstRand() * 1.2)
+        burstLifetimes[slot] = 0.48 + burstRand() * 0.58
+        const sparkleColor = color.clone().lerp(new THREE.Color(0xffffff), 0.08 + burstRand() * 0.16)
+        const sparkleIntensity = 2.4 + burstRand() * 1.35
+        burstBaseColors[slot * 3] = sparkleColor.r * sparkleIntensity
+        burstBaseColors[slot * 3 + 1] = sparkleColor.g * sparkleIntensity
+        burstBaseColors[slot * 3 + 2] = sparkleColor.b * sparkleIntensity
       }
 
       burstGeometry.attributes.position.needsUpdate = true
@@ -1219,7 +1263,7 @@ export default function App() {
         burstAges[i] += dt
         const life = Math.min(1, burstAges[i] / burstLifetimes[i])
         const flare = Math.sin(Math.PI * life)
-        const fade = Math.pow(1 - life, 1.18) * (1.1 + flare * 1.55) * (0.76 + Math.sin(elapsed * 24 + i) * 0.24)
+        const fade = Math.pow(1 - life, 2.15) * (0.85 + flare * 1.1) * (0.76 + Math.sin(elapsed * 24 + i) * 0.24)
         activeBurstParticles = activeBurstParticles || fade > 0.01
 
         burstVelocities[i * 3] *= 0.992
@@ -1263,14 +1307,31 @@ export default function App() {
         const discovery = DISCOVERIES[index]
         const focused = focusedId === discovery.id
         planet.userData.discoveryGlow = Math.max(0, planet.userData.discoveryGlow - dt * 0.72)
-        const discoveredGlow = planet.userData.discovered ? 0.2 : 0
         const burstGlow = planet.userData.discoveryGlow
         const targetScale = focused ? 1.32 : 1 + Math.min(0.18, burstGlow * 0.05)
         planet.scale.setScalar(THREE.MathUtils.lerp(planet.scale.x, targetScale, focused ? 0.18 : 0.08))
+        const targetOpacity = planet.userData.discovered
+          ? 1
+          : scopeAmount
+            ? focused
+              ? 1
+              : 0.18
+            : Math.min(0.08, 0.012 + burstGlow * 0.02)
+        planet.material.opacity = THREE.MathUtils.lerp(planet.material.opacity, targetOpacity, 0.14)
+        const materialBrightness = planet.userData.discovered ? (focused ? 1.55 : 1.32) : scopeAmount ? 1 : 0.55
+        planet.material.color.lerp(new THREE.Color(materialBrightness, materialBrightness, materialBrightness), 0.08)
         planet.rotation.y += dt * (0.05 + index * 0.01)
         planet.userData.atmosphere.material.opacity = THREE.MathUtils.lerp(
           planet.userData.atmosphere.material.opacity,
-          scopeAmount ? (focused ? 1 : 0.34) : Math.min(0.9, discoveredGlow * 0.9 + burstGlow * 0.42),
+          scopeAmount
+            ? focused
+              ? 1
+              : planet.userData.discovered
+                ? 0.78
+                : 0.16
+            : planet.userData.discovered
+              ? Math.min(1, 0.82 + burstGlow * 0.14)
+              : Math.min(0.18, burstGlow * 0.14),
           0.1,
         )
 
@@ -1278,23 +1339,47 @@ export default function App() {
         ring.lookAt(camera.position)
         ring.material.opacity = THREE.MathUtils.lerp(
           ring.material.opacity,
-          scopeAmount ? (focused ? 1 : 0.34) : Math.min(0.45, burstGlow * 0.12),
+          planet.userData.discovered
+            ? focused
+              ? 1
+              : 0.95
+            : scopeAmount
+              ? focused
+                ? 1
+                : 0.12
+              : Math.min(0.18, burstGlow * 0.08),
           0.1,
         )
-        ring.scale.setScalar((focused ? 1.2 : 1) + Math.sin(elapsed * 2.2 + index) * 0.04 + Math.min(0.16, burstGlow * 0.04))
+        ring.scale.setScalar(
+          (planet.userData.discovered ? 1.62 : focused ? 1.24 : 1) +
+            Math.sin(elapsed * 2.2 + index) * 0.055 +
+            Math.min(0.18, burstGlow * 0.04),
+        )
 
         const decorRing = planetDecorRings[index]
         if (decorRing) {
           decorRing.material.opacity = THREE.MathUtils.lerp(
             decorRing.material.opacity,
-            scopeAmount ? (focused ? 0.86 : 0.42) : Math.min(0.46, 0.08 + discoveredGlow * 0.65 + burstGlow * 0.1),
+            planet.userData.discovered
+              ? focused
+                ? 0.95
+                : 0.86
+              : scopeAmount
+                ? focused
+                  ? 0.9
+                  : 0.18
+                : Math.min(0.12, burstGlow * 0.06),
             0.1,
           )
           decorRing.rotation.z += dt * 0.035
         }
 
         const label = planetLabels[index]
-        label.material.opacity = THREE.MathUtils.lerp(label.material.opacity, scopeAmount && focused ? 0.95 : 0, 0.12)
+        label.material.opacity = THREE.MathUtils.lerp(
+          label.material.opacity,
+          focused ? 0.95 : planet.userData.discovered ? 0.9 : 0,
+          0.12,
+        )
       })
 
       if (elapsed > 2.9 && !hasSetIgnited) {
