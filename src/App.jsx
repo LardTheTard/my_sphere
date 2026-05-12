@@ -106,6 +106,7 @@ const DISCOVERIES = [
     subtitle: 'External-sampling MCCFR solver for no-limit poker',
     color: '#f2f59f',
     hex: 0xf2f59f,
+    visibilityBoost: 1.2,
     position: [4, 66, -78],
     radius: 2.2,
     palette: ['#19180d', '#55501d', '#b8a94a', '#fff6b0'],
@@ -317,37 +318,6 @@ function makePlanetTexture(palette, seed, style = {}, width = 512, height = 256)
   return canvas
 }
 
-function createTextSprite(text, color) {
-  const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 128
-  const ctx = canvas.getContext('2d')
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-  ctx.font = '24px "Courier New", monospace'
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.48)'
-  ctx.fillRect(0, 40, 512, 44)
-  ctx.strokeStyle = color
-  ctx.globalAlpha = 0.45
-  ctx.strokeRect(1, 41, 510, 42)
-  ctx.globalAlpha = 1
-  ctx.fillStyle = color
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(text.toUpperCase(), 256, 62)
-
-  const texture = new THREE.CanvasTexture(canvas)
-  const material = new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    opacity: 0,
-    depthWrite: false,
-  })
-  const sprite = new THREE.Sprite(material)
-  sprite.scale.set(8, 2, 1)
-  return sprite
-}
-
 function disposeScene(scene, renderer) {
   scene.traverse((object) => {
     if (object.geometry) {
@@ -441,6 +411,8 @@ export default function App() {
   const discoveredIdsRef = useRef(new Set())
   const discoveryEventsRef = useRef([])
   const [scopeActiveState, setScopeActiveState] = useState(false)
+  const [scopeProximity, setScopeProximity] = useState(0)
+  const scopeProximityRef = useRef(0)
   const [focusedTarget, setFocusedTarget] = useState(null)
   const [activeDiscovery, setActiveDiscovery] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -548,7 +520,7 @@ export default function App() {
       const y = Math.cos(phi) * radius
       const x = Math.sin(phi) * Math.cos(theta) * radius
       const z = Math.sin(phi) * Math.sin(theta) * radius
-      const brightness = 1 + starRand() * 0.82
+      const brightness = 0.16 + starRand() * 0.22
       const cold = starRand() > 0.28
 
       starPositions[i * 3] = x
@@ -564,12 +536,13 @@ export default function App() {
     const stars = new THREE.Points(
       starGeometry,
       new THREE.PointsMaterial({
-        size: 1,
+        size: 0.72,
         vertexColors: true,
         transparent: true,
-        opacity: 1,
+        opacity: 0.42,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
+        fog: false,
       }),
     )
     scene.add(stars)
@@ -586,7 +559,7 @@ export default function App() {
       const phi = Math.acos(THREE.MathUtils.lerp(0.08, 0.98, anchorRand()))
       const radius = anchorStarRadiusConst + anchorRand() * anchorStarRadiusConst / 2
       const y = Math.cos(phi) * radius
-      const twinkle = 1.1 + anchorRand() * 0.95
+      const twinkle = 0.24 + anchorRand() * 0.28
 
       anchorStarPositions[i * 3] = Math.sin(phi) * Math.cos(theta) * radius
       anchorStarPositions[i * 3 + 1] = Math.abs(y) + 4
@@ -601,12 +574,13 @@ export default function App() {
     const anchorStars = new THREE.Points(
       anchorStarGeometry,
       new THREE.PointsMaterial({
-        size: 2.35,
+        size: 1.35,
         vertexColors: true,
         transparent: true,
-        opacity: 0.92,
+        opacity: 0.34,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
+        fog: false,
       }),
     )
     scene.add(anchorStars)
@@ -645,11 +619,12 @@ export default function App() {
       guideStarGeometry,
       new THREE.PointsMaterial({
         color: 0xf7efd2,
-        size: 3,
+        size: 1.45,
         transparent: true,
-        opacity: 1,
+        opacity: 0.32,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
+        fog: false,
       }),
     )
     constellationGroup.add(guideStars)
@@ -691,9 +666,10 @@ export default function App() {
     const constellationBeamMaterial = new THREE.MeshBasicMaterial({
       color: 0x8be8ff,
       transparent: true,
-      opacity: 0.34,
+      opacity: 0.06,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
+      fog: false,
     })
     constellationPairs.forEach(([from, to]) => {
       const start = new THREE.Vector3(
@@ -719,9 +695,10 @@ export default function App() {
         new THREE.LineBasicMaterial({
           color: 0x5fbfff,
           transparent: true,
-          opacity: 0.58,
+          opacity: 0.1,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
+          fog: false,
         }),
       ),
     )
@@ -731,9 +708,10 @@ export default function App() {
         new THREE.LineBasicMaterial({
           color: 0x9bdfff,
           transparent: true,
-          opacity: 1,
+          opacity: 0.18,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
+          fog: false,
         }),
       ),
     )
@@ -867,7 +845,6 @@ export default function App() {
     const planetMeshes = []
     const planetRings = []
     const planetDecorRings = []
-    const planetLabels = []
     const skyGroup = new THREE.Group()
     scene.add(skyGroup)
 
@@ -876,12 +853,14 @@ export default function App() {
         makePlanetTexture(discovery.palette, index + 10, discovery.planetStyle),
       )
       planetTexture.colorSpace = THREE.SRGBColorSpace
+      const visibilityBoost = discovery.visibilityBoost ?? 1
       const planetMaterial = new THREE.MeshBasicMaterial({
         map: planetTexture,
-        color: 0xffffff,
-        transparent: true,
-        opacity: discoveredIdsRef.current.has(discovery.id) ? 1 : 0.018,
-        depthWrite: false,
+        color: discoveredIdsRef.current.has(discovery.id) ? 0xffffff : 0x242424,
+        transparent: false,
+        depthWrite: true,
+        toneMapped: false,
+        fog: false,
       })
       const planet = new THREE.Mesh(new THREE.SphereGeometry(discovery.radius, 48, 32), planetMaterial)
       planet.position.set(...discovery.position)
@@ -889,8 +868,27 @@ export default function App() {
       planet.userData.discovered = discoveredIdsRef.current.has(discovery.id)
       planet.userData.discoveryGlow = 0
       planet.userData.hoverScale = 1
+      planet.renderOrder = 3
       skyGroup.add(planet)
       planetMeshes.push(planet)
+
+      const fullBrightShell = new THREE.Mesh(
+        new THREE.SphereGeometry(discovery.radius * 1.018, 48, 32),
+        new THREE.MeshBasicMaterial({
+          color: discovery.hex,
+          transparent: true,
+          opacity: discoveredIdsRef.current.has(discovery.id) ? Math.min(0.48, 0.18 * visibilityBoost) : 0,
+          depthTest: false,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          toneMapped: false,
+          fog: false,
+        }),
+      )
+      fullBrightShell.position.copy(planet.position)
+      fullBrightShell.renderOrder = 7
+      skyGroup.add(fullBrightShell)
+      planet.userData.fullBrightShell = fullBrightShell
 
       const atmosphere = new THREE.Mesh(
         new THREE.SphereGeometry(discovery.radius * 1.09, 32, 16),
@@ -901,6 +899,8 @@ export default function App() {
           depthWrite: false,
           blending: THREE.AdditiveBlending,
           side: THREE.BackSide,
+          toneMapped: false,
+          fog: false,
         }),
       )
       atmosphere.position.copy(planet.position)
@@ -916,6 +916,8 @@ export default function App() {
           depthWrite: false,
           side: THREE.DoubleSide,
           blending: THREE.AdditiveBlending,
+          toneMapped: false,
+          fog: false,
         }),
       )
       ring.position.copy(planet.position)
@@ -933,6 +935,8 @@ export default function App() {
             depthWrite: false,
             side: THREE.DoubleSide,
             blending: THREE.AdditiveBlending,
+            toneMapped: false,
+            fog: false,
           }),
         )
         decorRing.position.copy(planet.position)
@@ -940,12 +944,6 @@ export default function App() {
         skyGroup.add(decorRing)
       }
       planetDecorRings.push(decorRing)
-
-      const label = createTextSprite(discovery.world, discovery.color)
-      label.position.copy(planet.position).add(new THREE.Vector3(0, discovery.radius * 2.1, 0))
-      label.scale.set(13, 3.25, 1)
-      skyGroup.add(label)
-      planetLabels.push(label)
     })
 
     const burstCount = 900
@@ -972,6 +970,7 @@ export default function App() {
         depthTest: false,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
+        fog: false,
       }),
     )
     burstParticles.frustumCulled = false
@@ -982,8 +981,14 @@ export default function App() {
       const discovery = DISCOVERIES[index]
       const color = new THREE.Color(discovery.hex)
       const burstSize = firstDiscovery ? 230 : 90
+      const visibilityBoost = discovery.visibilityBoost ?? 1
       planet.userData.discovered = true
       planet.userData.discoveryGlow = Math.max(planet.userData.discoveryGlow, firstDiscovery ? 2.4 : 1.35)
+      planet.material.color.setRGB(1 * visibilityBoost, 1 * visibilityBoost, 1 * visibilityBoost)
+      planet.userData.fullBrightShell.material.opacity = Math.max(
+        planet.userData.fullBrightShell.material.opacity,
+        Math.min(0.5, (firstDiscovery ? 0.3 : 0.2) * visibilityBoost),
+      )
 
       for (let i = 0; i < burstSize; i += 1) {
         const slot = burstCursor
@@ -1022,6 +1027,7 @@ export default function App() {
     const center = new THREE.Vector2(0, 0)
     const cameraDirection = new THREE.Vector3()
     const targetDirection = new THREE.Vector3()
+    const planetTint = new THREE.Color()
     const pressed = new Set()
     const velocity = new THREE.Vector3()
     const forward = new THREE.Vector3()
@@ -1283,8 +1289,9 @@ export default function App() {
       raycaster.setFromCamera(center, camera)
       const hits = scopeActiveRef.current ? raycaster.intersectObjects(planetMeshes, false) : []
       let focusedId = hits.length ? hits[0].object.userData.discoveryId : null
+      let proximity = 0
 
-      if (scopeActiveRef.current && !focusedId) {
+      if (scopeActiveRef.current) {
         camera.getWorldDirection(cameraDirection)
         let bestAngle = Infinity
 
@@ -1294,44 +1301,69 @@ export default function App() {
           targetDirection.multiplyScalar(1 / distance)
           const angle = cameraDirection.angleTo(targetDirection)
           const lockAngle = Math.atan(DISCOVERIES[index].radius / distance) + 0.09
+          const scanAngle = lockAngle * 3.8
+          proximity = Math.max(proximity, THREE.MathUtils.clamp(1 - angle / scanAngle, 0, 1))
 
-          if (angle < lockAngle && angle < bestAngle) {
+          if (!focusedId && angle < lockAngle && angle < bestAngle) {
             bestAngle = angle
             focusedId = planet.userData.discoveryId
           }
         })
+      }
+      if (Math.abs(proximity - scopeProximityRef.current) > 0.025) {
+        scopeProximityRef.current = proximity
+        setScopeProximity(proximity)
       }
       setFocus(focusedId, elapsed)
 
       planetMeshes.forEach((planet, index) => {
         const discovery = DISCOVERIES[index]
         const focused = focusedId === discovery.id
+        const visibilityBoost = discovery.visibilityBoost ?? 1
         planet.userData.discoveryGlow = Math.max(0, planet.userData.discoveryGlow - dt * 0.72)
         const burstGlow = planet.userData.discoveryGlow
         const targetScale = focused ? 1.32 : 1 + Math.min(0.18, burstGlow * 0.05)
         planet.scale.setScalar(THREE.MathUtils.lerp(planet.scale.x, targetScale, focused ? 0.18 : 0.08))
-        const targetOpacity = planet.userData.discovered
-          ? 1
+        const materialBrightness = planet.userData.discovered
+          ? focused
+            ? 1.2 * visibilityBoost
+            : 0.88 * visibilityBoost
           : scopeAmount
             ? focused
-              ? 1
+              ? 0.46 * visibilityBoost
+              : 0.06 * Math.min(visibilityBoost, 1.12)
+            : (0.018 + Math.min(0.04, burstGlow * 0.02)) * Math.min(visibilityBoost, 1.08)
+        planetTint.setRGB(materialBrightness, materialBrightness, materialBrightness)
+        planet.material.color.lerp(planetTint, focused ? 0.24 : 0.12)
+        const fullBrightShell = planet.userData.fullBrightShell
+        const shellOpacity = Math.min(
+          1,
+          (planet.userData.discovered
+            ? focused
+              ? 0.28
               : 0.18
-            : Math.min(0.08, 0.012 + burstGlow * 0.02)
-        planet.material.opacity = THREE.MathUtils.lerp(planet.material.opacity, targetOpacity, 0.14)
-        const materialBrightness = planet.userData.discovered ? (focused ? 1.55 : 1.32) : scopeAmount ? 1 : 0.55
-        planet.material.color.lerp(new THREE.Color(materialBrightness, materialBrightness, materialBrightness), 0.08)
+            : scopeAmount && focused
+              ? 0.04
+              : Math.min(0.025, burstGlow * 0.02)) * visibilityBoost,
+        )
+        fullBrightShell.material.opacity = THREE.MathUtils.lerp(
+          fullBrightShell.material.opacity,
+          shellOpacity,
+          focused ? 0.18 : 0.12,
+        )
+        fullBrightShell.scale.setScalar(planet.scale.x * (planet.userData.discovered ? 1.035 : 1.015))
         planet.rotation.y += dt * (0.05 + index * 0.01)
         planet.userData.atmosphere.material.opacity = THREE.MathUtils.lerp(
           planet.userData.atmosphere.material.opacity,
           scopeAmount
             ? focused
-              ? 1
+              ? 0.22
               : planet.userData.discovered
-                ? 0.78
-                : 0.16
+                ? 0.2
+                : 0.025
             : planet.userData.discovered
-              ? Math.min(1, 0.82 + burstGlow * 0.14)
-              : Math.min(0.18, burstGlow * 0.14),
+              ? Math.min(0.32, 0.2 + burstGlow * 0.05)
+              : Math.min(0.035, burstGlow * 0.035),
           0.1,
         )
 
@@ -1341,13 +1373,13 @@ export default function App() {
           ring.material.opacity,
           planet.userData.discovered
             ? focused
-              ? 1
-              : 0.95
+              ? 0.36
+              : 0.25
             : scopeAmount
               ? focused
-                ? 1
-                : 0.12
-              : Math.min(0.18, burstGlow * 0.08),
+                ? 0.2
+                : 0.025
+              : Math.min(0.04, burstGlow * 0.025),
           0.1,
         )
         ring.scale.setScalar(
@@ -1362,24 +1394,17 @@ export default function App() {
             decorRing.material.opacity,
             planet.userData.discovered
               ? focused
-                ? 0.95
-                : 0.86
+                ? 0.28
+                : 0.2
               : scopeAmount
                 ? focused
-                  ? 0.9
-                  : 0.18
-                : Math.min(0.12, burstGlow * 0.06),
+                  ? 0.18
+                  : 0.03
+                : Math.min(0.03, burstGlow * 0.02),
             0.1,
           )
           decorRing.rotation.z += dt * 0.035
         }
-
-        const label = planetLabels[index]
-        label.material.opacity = THREE.MathUtils.lerp(
-          label.material.opacity,
-          focused ? 0.95 : planet.userData.discovered ? 0.9 : 0,
-          0.12,
-        )
       })
 
       if (elapsed > 2.9 && !hasSetIgnited) {
@@ -1416,6 +1441,10 @@ export default function App() {
       className={`space-app ${scopeActiveState ? 'is-scoping' : ''} ${ignited ? 'is-lit' : ''} ${
         sidebarOpen ? 'has-sidebar' : ''
       }`}
+      style={{
+        '--scope-lock-scale': 1 - scopeProximity * 0.72,
+        '--scope-lock-opacity': 0.24 + scopeProximity * 0.76,
+      }}
     >
       <div ref={mountRef} className="scene-mount" />
 
@@ -1426,7 +1455,7 @@ export default function App() {
       <div className="vignette" aria-hidden="true" />
 
       <header className="hud-brand">
-        <span>LOGAN</span>
+        <span>LOGAN ZHAO'S</span>
         <strong>PORTFOLIO</strong>
       </header>
 
@@ -1457,6 +1486,7 @@ export default function App() {
 
       <div className="scope-overlay" aria-hidden="true">
         <div className="scope-ring" />
+        <div className="scope-lock-circle" />
         <div className="scope-crosshair" />
       </div>
 
@@ -1469,7 +1499,6 @@ export default function App() {
         <span>DRAG LOOK</span>
         <span>WASD MOVE</span>
         <span>SPACE TO SCOPE IN</span>
-        <span>ENTER OPEN</span>
       </div>
 
       <PortfolioSidebar

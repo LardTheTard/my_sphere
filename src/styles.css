@@ -225,6 +225,25 @@ canvas {
   transform: translate(-50%, -50%);
 }
 
+.scope-lock-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(420px, 62vmin);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(var(--scope-lock-scale, 1));
+  border: 1px solid rgba(242, 245, 159, 0.8);
+  border-radius: 50%;
+  opacity: var(--scope-lock-opacity, 0.24);
+  box-shadow:
+    0 0 20px rgba(242, 245, 159, 0.22),
+    inset 0 0 24px rgba(242, 245, 159, 0.08);
+  transition:
+    opacity 120ms linear,
+    transform 120ms linear,
+    border-color 120ms linear;
+}
+
 .scope-crosshair::before,
 .scope-crosshair::after {
   content: "";
