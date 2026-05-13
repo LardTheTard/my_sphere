@@ -26,8 +26,8 @@ const DEFAULT_RECORD_TRACKS = [
 const DISCOVERIES = [
   {
     id: 'about',
-    signal: 'traveler signal',
-    world: 'The Quiet One',
+    signal: 'traveler\'s signal',
+    world: 'Wanderer',
     title: 'Logan Zhao',
     subtitle: 'Systems Design Engineering student at the University of Waterloo',
     color: '#7bdff2',
@@ -44,10 +44,10 @@ const DISCOVERIES = [
   },
   {
     id: 'experience',
-    signal: 'public sector relay',
-    world: 'Blue Giant',
-    title: 'Experience',
-    subtitle: 'Application Programmer, Ontario Government MPBSDP',
+    signal: 'recursive orbit',
+    world: 'Green Giant',
+    title: "Heads-up Hold'em Poker AI",
+    subtitle: 'External-sampling MCCFR solver for no-limit poker',
     color: '#8ef6a4',
     hex: 0x8ef6a4,
     position: [68, 38, -24],
@@ -55,16 +55,16 @@ const DISCOVERIES = [
     palette: ['#071c3d', '#115d7e', '#5fb7a1', '#e7efe2'],
     planetStyle: { rings: true, bands: true, ringTilt: 0.42 },
     body: [
-      'Built and supported automated QA tooling for Cognos BI reports using the IBM Cognos API and Playwright, helping validate 1,000+ reports per hour and protect reporting integrity.',
-      'Worked with Redshift, DBeaver SQL, AWS Lambda ETL, audit logs, and Python Excel automation to clean, transform, monitor, and prepare analytics data across large BI workflows.',
-      'Previously organized NRGHacks for 200+ attendees, led a 50+ member coding club, and designed a Rotary club website that helped increase membership.',
+      "Built a heads-up no-limit Texas Hold'em AI and solver that trained a policy capable of winning more than 10BB/hr against basic heuristics using external-sampling MCCFR with regret matching.",
+      'Engineered card abstraction through bucketing with Monte Carlo equity and potential calculations, reaching roughly 80% similarity to known solvers.',
+      'Increased training speed by more than 10x on an 8-core CPU with a multiprocessing chunk-and-merge traversal pipeline.',
     ],
-    tags: ['Playwright', 'Cognos API', 'Redshift', 'AWS Lambda', 'Python', 'Leadership'],
+    tags: ['NumPy', 'MCCFR', 'Plotly', 'React', 'Flask', 'github.com/LargoLardo/lard_plays_poker'],
   },
   {
     id: 'reminiscence',
     signal: 'memory reconstruction',
-    world: 'Amber Seed',
+    world: 'Timeless Twin',
     title: 'Reminiscence',
     subtitle: 'iPhone video to VR-ready Gaussian splats',
     color: '#ffbd6b',
@@ -82,7 +82,7 @@ const DISCOVERIES = [
   {
     id: 'synesthesia',
     signal: 'cross-media resonance',
-    world: 'Red Hollow',
+    world: 'Lunar Hollow',
     title: 'Synthetic Synesthesia',
     subtitle: 'Full-stack cross-media vibe translation',
     color: '#ff7a90',
@@ -99,10 +99,10 @@ const DISCOVERIES = [
   },
   {
     id: 'chess',
-    signal: 'search tree beacon',
-    world: 'Glass Archive',
-    title: 'RL/SL Chess Engine',
-    subtitle: 'Policy/value network with MCTS/PUCT search',
+    signal: 'waterloo transmission',
+    world: 'Scholar\'s Moon',
+    title: 'Education',
+    subtitle: 'University of Waterloo, Systems Design Engineering',
     color: '#c69cff',
     hex: 0xc69cff,
     position: [-74, 44, -12],
@@ -110,17 +110,17 @@ const DISCOVERIES = [
     palette: ['#151023', '#4f3c78', '#9f7bd5', '#e1d5ff'],
     planetStyle: { bands: true, spots: 5 },
     body: [
-      'Architected a full-stack RL/SL hybrid chess engine from scratch with a policy/value network and MCTS/PUCT move search, reaching expert-level 2000 Elo strength through self-play.',
-      'Improved runtime search speed by more than 8x with lazy inference batching, transposition tables, and cached board encodings for deeper lookahead under fixed move-time budgets.',
+      'Bachelor of Applied Science in Systems Design Engineering at the University of Waterloo, expected 2030, with a 3.9 GPA.',
+      "Recipient of the W.J. Beynon Memorial Entrance Scholarship and President's Scholarship of Distinction.",
     ],
-    tags: ['PyTorch', 'MCTS', 'React', 'Vite', 'Flask', 'github.com/LargoLardo/lard_plays_chess'],
+    tags: ['Systems Design Engineering', '3.9 GPA', 'Waterloo', 'Scholarships'],
   },
   {
     id: 'poker',
-    signal: 'recursive orbit',
-    world: 'Home Frequency',
-    title: "Heads-up Hold'em Poker AI",
-    subtitle: 'External-sampling MCCFR solver for no-limit poker',
+    signal: 'journeygoer\'s relay',
+    world: 'Golden Seed',
+    title: 'Experience',
+    subtitle: 'Application Programmer, Ontario Government MPBSDP',
     color: '#f2f59f',
     hex: 0xf2f59f,
     visibilityBoost: 1.2,
@@ -129,18 +129,18 @@ const DISCOVERIES = [
     palette: ['#19180d', '#55501d', '#b8a94a', '#fff6b0'],
     planetStyle: { rings: true, ringTilt: 0.78 },
     body: [
-      "Built a heads-up no-limit Texas Hold'em AI and solver that trained a policy capable of winning more than 10BB/hr against basic heuristics using external-sampling MCCFR with regret matching.",
-      'Engineered card abstraction through bucketing with Monte Carlo equity and potential calculations, reaching roughly 80% similarity to known solvers.',
-      'Increased training speed by more than 10x on an 8-core CPU with a multiprocessing chunk-and-merge traversal pipeline.',
+      'Built and supported automated QA tooling for Cognos BI reports using the IBM Cognos API and Playwright, helping validate 1,000+ reports per hour and protect reporting integrity.',
+      'Worked with Redshift, DBeaver SQL, AWS Lambda ETL, audit logs, and Python Excel automation to clean, transform, monitor, and prepare analytics data across large BI workflows.',
+      'Previously organized NRGHacks for 200+ attendees, led a 50+ member coding club, and designed a Rotary club website that helped increase membership.',
     ],
-    tags: ['NumPy', 'MCCFR', 'Plotly', 'React', 'Flask', 'github.com/LargoLardo/lard_plays_poker'],
+    tags: ['Playwright', 'Cognos API', 'Redshift', 'AWS Lambda', 'Python', 'Leadership'],
   },
   {
     id: 'education',
-    signal: 'waterloo transmission',
-    world: 'Scholar Moon',
-    title: 'Education',
-    subtitle: 'University of Waterloo, Systems Design Engineering',
+    signal: 'search tree beacon',
+    world: 'Glass Oracle',
+    title: 'RL/SL Chess Engine',
+    subtitle: 'Policy/value network with MCTS/PUCT search',
     color: '#9ee493',
     hex: 0x9ee493,
     position: [-26, 78, 50],
@@ -148,15 +148,15 @@ const DISCOVERIES = [
     palette: ['#0b2115', '#245d3b', '#72b36e', '#e2ffd4'],
     planetStyle: { rings: true, bands: true, ringTilt: -0.58 },
     body: [
-      'Bachelor of Applied Science in Systems Design Engineering at the University of Waterloo, expected 2030, with a 3.9 GPA.',
-      "Recipient of the W.J. Beynon Memorial Entrance Scholarship and President's Scholarship of Distinction.",
+      'Architected a full-stack RL/SL hybrid chess engine from scratch with a policy/value network and MCTS/PUCT move search, reaching expert-level 2000 Elo strength through self-play.',
+      'Improved runtime search speed by more than 8x with lazy inference batching, transposition tables, and cached board encodings for deeper lookahead under fixed move-time budgets.',
     ],
-    tags: ['Systems Design Engineering', '3.9 GPA', 'Waterloo', 'Scholarships'],
+    tags: ['PyTorch', 'MCTS', 'React', 'Vite', 'Flask', 'github.com/LargoLardo/lard_plays_chess'],
   },
   {
     id: 'hobbies',
     signal: 'campfire frequency',
-    world: 'Hearth Planet',
+    world: 'Hearth Twin',
     title: 'Hobbies',
     subtitle: 'Games, movement, and worlds that make curiosity feel physical',
     color: '#ffcf87',
@@ -2266,10 +2266,12 @@ export default function App() {
         <div className="scope-crosshair" />
       </div>
 
-      <div className="signal-readout" style={{ '--signal-color': focusedData?.color ?? '#f7f2d6' }}>
-        <span>{scopeActiveState ? 'SIGNAL' : 'CAMPFIRE'}</span>
-        <strong>{focusedData?.world ?? (scopeActiveState ? 'NO LOCK' : 'ONLINE')}</strong>
-      </div>
+      {scopeActiveState && (
+        <div className="signal-readout" style={{ '--signal-color': focusedData?.color ?? '#f7f2d6' }}>
+          <span>SIGNAL</span>
+          <strong>{focusedData?.world ?? 'NO LOCK'}</strong>
+        </div>
+      )}
 
       <div className={`controls-hud ${controlsVisible ? 'is-visible' : ''}`} aria-label="Controls">
         <span>DRAG LOOK | </span>
@@ -2282,10 +2284,8 @@ export default function App() {
           x
         </button>
         <h2>Controls</h2>
-        <p>Drag to look around the campfire. Use WASD to move.</p>
         <p>Hold Space, right mouse, or the Scope button to scan the sky.</p>
         <p>Aim the scope at a signal until a planet wakes up, then click discovered planets to open portfolio sections.</p>
-        <p>Click on objects to interact with them.</p>
         <p>The Sections button lists every discovered destination.</p>
       </aside>
 

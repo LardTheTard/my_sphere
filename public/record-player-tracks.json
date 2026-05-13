@@ -1,6 +1,11 @@
 {
   "tracks": [
     {
+      "title": "Arabesque No. 1 - Debussy",
+      "src": "/audio/record-player/Arabesque.mp3",
+      "volume": 1
+    },
+    {
       "title": "Clair de Lune - Debussy",
       "src": "/audio/record-player/Clair_de_Lune.mp3",
       "volume": 0.8
