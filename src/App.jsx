@@ -1,10 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import phonographBinUrl from './assets/phonograph/scene.bin?url'
+import phonographSceneUrl from './assets/phonograph/scene.gltf?url'
+import phonographTextureUrl from './assets/phonograph/textures/Material_baseColor.png?url'
 
 const PLAYER_RADIUS = 5.4
 const CAMPFIRE_RADIUS = 1.05
 const EYE_HEIGHT = 1.54
 const UP = new THREE.Vector3(0, 1, 0)
+const RECORD_TRACK_CONFIG_URL = '/record-player-tracks.json'
+const CONTROLS_HINT_DURATION_MS = 15000
+const SCOPE_IDLE_REMINDER_MS = 30000
+
+const DEFAULT_RECORD_TRACKS = [
+  {
+    title: 'Campfire Drift',
+    tempo: 68,
+    durationSeconds: 18,
+    notes: [196, 246.94, 293.66, 329.63, 293.66, 246.94, 220, 246.94],
+  },
+]
 
 const DISCOVERIES = [
   {
@@ -318,12 +334,180 @@ function makePlanetTexture(palette, seed, style = {}, width = 512, height = 256)
   return canvas
 }
 
+function makeWoodGrainTexture(seed = 1, width = 512, height = 128) {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  const rand = seededRandom(seed)
+  const base = ctx.createLinearGradient(0, 0, width, height)
+  base.addColorStop(0, '#4a2b18')
+  base.addColorStop(0.45, '#7b4d2a')
+  base.addColorStop(1, '#342014')
+
+  ctx.fillStyle = base
+  ctx.fillRect(0, 0, width, height)
+
+  for (let i = 0; i < 86; i += 1) {
+    const y = rand() * height
+    const alpha = 0.07 + rand() * 0.18
+    ctx.strokeStyle = `rgba(24, 13, 7, ${alpha})`
+    ctx.lineWidth = 0.8 + rand() * 2.4
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.bezierCurveTo(width * 0.24, y + rand() * 16 - 8, width * 0.68, y + rand() * 16 - 8, width, y)
+    ctx.stroke()
+  }
+
+  for (let i = 0; i < 10; i += 1) {
+    const x = rand() * width
+    const y = rand() * height
+    const r = 8 + rand() * 24
+    const knot = ctx.createRadialGradient(x, y, 0, x, y, r)
+    knot.addColorStop(0, 'rgba(28, 14, 7, 0.36)')
+    knot.addColorStop(0.42, 'rgba(74, 42, 22, 0.18)')
+    knot.addColorStop(1, 'rgba(74, 42, 22, 0)')
+    ctx.fillStyle = knot
+    ctx.beginPath()
+    ctx.ellipse(x, y, r * 1.8, r * 0.55, rand() * Math.PI, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  return canvas
+}
+
+function makeWoodBumpTexture(seed = 1, width = 512, height = 128) {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  const rand = seededRandom(seed + 4000)
+
+  ctx.fillStyle = '#7f7f7f'
+  ctx.fillRect(0, 0, width, height)
+
+  for (let i = 0; i < 96; i += 1) {
+    const y = rand() * height
+    ctx.strokeStyle = `rgba(${88 + rand() * 40}, ${88 + rand() * 40}, ${88 + rand() * 40}, 0.55)`
+    ctx.lineWidth = 1 + rand() * 2.2
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.bezierCurveTo(width * 0.3, y + rand() * 12 - 6, width * 0.7, y + rand() * 12 - 6, width, y)
+    ctx.stroke()
+  }
+
+  return canvas
+}
+
+function createWoodMaterial(seed, color, repeatX = 2.2, repeatY = 1) {
+  const map = new THREE.CanvasTexture(makeWoodGrainTexture(seed))
+  const bumpMap = new THREE.CanvasTexture(makeWoodBumpTexture(seed))
+  map.colorSpace = THREE.SRGBColorSpace
+  map.wrapS = THREE.RepeatWrapping
+  map.wrapT = THREE.RepeatWrapping
+  map.repeat.set(repeatX, repeatY)
+  bumpMap.wrapS = THREE.RepeatWrapping
+  bumpMap.wrapT = THREE.RepeatWrapping
+  bumpMap.repeat.copy(map.repeat)
+
+  return new THREE.MeshStandardMaterial({
+    map,
+    bumpMap,
+    bumpScale: 0.018,
+    color,
+    roughness: 0.96,
+    metalness: 0,
+  })
+}
+
+function makeMusicNoteTexture(size = 128) {
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+
+  ctx.clearRect(0, 0, size, size)
+  ctx.font = 'bold 92px Georgia, "Times New Roman", serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = '#f5d58a'
+  ctx.strokeStyle = 'rgba(25, 15, 6, 0.62)'
+  ctx.lineWidth = 7
+  ctx.strokeText('♪', size / 2, size / 2)
+  ctx.fillText('♪', size / 2, size / 2)
+
+  return canvas
+}
+
+function loadRecordTracks() {
+  return fetch(RECORD_TRACK_CONFIG_URL, { cache: 'no-store' })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      if (Array.isArray(data?.tracks) && data.tracks.length > 0) {
+        return data.tracks
+      }
+
+      return DEFAULT_RECORD_TRACKS
+    })
+    .catch(() => DEFAULT_RECORD_TRACKS)
+}
+
+function writeAscii(view, offset, value) {
+  for (let i = 0; i < value.length; i += 1) {
+    view.setUint8(offset + i, value.charCodeAt(i))
+  }
+}
+
+function createProceduralRecordUrl(track) {
+  const sampleRate = 22050
+  const duration = Math.max(8, Math.min(42, track.durationSeconds ?? 18))
+  const sampleCount = Math.floor(sampleRate * duration)
+  const notes = Array.isArray(track.notes) && track.notes.length > 0 ? track.notes : DEFAULT_RECORD_TRACKS[0].notes
+  const tempo = track.tempo ?? 70
+  const beatLength = 60 / tempo
+  const buffer = new ArrayBuffer(44 + sampleCount * 2)
+  const view = new DataView(buffer)
+
+  writeAscii(view, 0, 'RIFF')
+  view.setUint32(4, 36 + sampleCount * 2, true)
+  writeAscii(view, 8, 'WAVE')
+  writeAscii(view, 12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  writeAscii(view, 36, 'data')
+  view.setUint32(40, sampleCount * 2, true)
+
+  for (let i = 0; i < sampleCount; i += 1) {
+    const t = i / sampleRate
+    const beat = Math.floor(t / beatLength)
+    const beatT = (t % beatLength) / beatLength
+    const freq = notes[beat % notes.length]
+    const nextFreq = notes[(beat + 3) % notes.length] / 2
+    const envelope = Math.sin(Math.PI * beatT) * Math.pow(1 - beatT, 0.24)
+    const crackle = Math.sin(t * 127.31 + Math.sin(t * 11.2) * 8) > 0.985 ? 0.035 : 0
+    const wave =
+      Math.sin(Math.PI * 2 * freq * t) * 0.13 * envelope +
+      Math.sin(Math.PI * 2 * nextFreq * t) * 0.08 * envelope +
+      Math.sin(Math.PI * 2 * freq * 2.01 * t) * 0.025 * envelope +
+      crackle
+    const sample = THREE.MathUtils.clamp(wave, -0.92, 0.92)
+    view.setInt16(44 + i * 2, sample * 32767, true)
+  }
+
+  return URL.createObjectURL(new Blob([view], { type: 'audio/wav' }))
+}
+
 function shortestAngleDelta(from, to) {
   return Math.atan2(Math.sin(to - from), Math.cos(to - from))
 }
 
-function disposeScene(scene, renderer) {
-  scene.traverse((object) => {
+function disposeObjectTree(root) {
+  root.traverse((object) => {
     if (object.geometry) {
       object.geometry.dispose()
     }
@@ -339,7 +523,10 @@ function disposeScene(scene, renderer) {
       material.dispose()
     })
   })
+}
 
+function disposeScene(scene, renderer) {
+  disposeObjectTree(scene)
   renderer.dispose()
 }
 
@@ -422,6 +609,8 @@ export default function App() {
   const [activeDiscovery, setActiveDiscovery] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [ignited, setIgnited] = useState(false)
+  const [controlsVisible, setControlsVisible] = useState(true)
+  const [scopeUseCount, setScopeUseCount] = useState(0)
 
   const activeData = useMemo(() => DISCOVERY_BY_ID[activeDiscovery] ?? null, [activeDiscovery])
   const focusedData = useMemo(() => DISCOVERY_BY_ID[focusedTarget] ?? null, [focusedTarget])
@@ -429,6 +618,10 @@ export default function App() {
   const setScopeActive = useCallback((value) => {
     scopeActiveRef.current = value
     setScopeActiveState(value)
+    if (value) {
+      setControlsVisible(false)
+      setScopeUseCount((count) => count + 1)
+    }
   }, [])
 
   const revealDiscovery = useCallback((id) => {
@@ -449,6 +642,26 @@ export default function App() {
     },
     [revealDiscovery],
   )
+
+  useEffect(() => {
+    if (!ignited || !controlsVisible) return undefined
+
+    const hideTimer = window.setTimeout(() => {
+      setControlsVisible(false)
+    }, CONTROLS_HINT_DURATION_MS)
+
+    return () => window.clearTimeout(hideTimer)
+  }, [controlsVisible, ignited])
+
+  useEffect(() => {
+    if (!ignited || controlsVisible || scopeActiveState) return undefined
+
+    const reminderTimer = window.setTimeout(() => {
+      setControlsVisible(true)
+    }, SCOPE_IDLE_REMINDER_MS)
+
+    return () => window.clearTimeout(reminderTimer)
+  }, [controlsVisible, ignited, scopeActiveState, scopeUseCount])
 
   useEffect(() => {
     const mount = mountRef.current
@@ -789,29 +1002,9 @@ export default function App() {
     signGroup.rotation.y = 0.18
     scene.add(signGroup)
 
-    const signTopPlankMaterial = new THREE.MeshStandardMaterial({
-      color: 0x75431f,
-      roughness: 0.92,
-      metalness: 0,
-    })
-    const signBottomPlankMaterial = new THREE.MeshStandardMaterial({
-      color: 0x5f351b,
-      roughness: 0.94,
-      metalness: 0,
-    })
-    const signPostMaterial = new THREE.MeshStandardMaterial({
-      color: 0x4b2814,
-      roughness: 0.95,
-      metalness: 0,
-    })
-    const signGrainMaterial = new THREE.MeshBasicMaterial({
-      color: 0x241209,
-      transparent: true,
-      opacity: 0.42,
-      depthWrite: false,
-      toneMapped: false,
-      fog: false,
-    })
+    const signTopPlankMaterial = createWoodMaterial(805, 0x8a5630)
+    const signBottomPlankMaterial = createWoodMaterial(811, 0x70411f)
+    const signPostMaterial = createWoodMaterial(819, 0x5a321b, 0.75, 2.8)
     const signTextMaterial = new THREE.MeshBasicMaterial({
       color: 0x050505,
       toneMapped: false,
@@ -843,22 +1036,6 @@ export default function App() {
     bottomPlank.castShadow = true
     bottomPlank.receiveShadow = true
     signBoardGroup.add(bottomPlank)
-
-    const signRand = seededRandom(805)
-    const grainGeometry = new THREE.BoxGeometry(1, 1, 0.009)
-    const addGrain = (yMin, yMax, count, maxWidth) => {
-      for (let i = 0; i < count; i += 1) {
-        const grain = new THREE.Mesh(grainGeometry, signGrainMaterial)
-        const length = 0.28 + signRand() * maxWidth
-        const thickness = 0.005 + signRand() * 0.009
-        grain.position.set((signRand() - 0.5) * 1.2, yMin + signRand() * (yMax - yMin), 0.057)
-        grain.scale.set(length, thickness, 1)
-        grain.rotation.z = (signRand() - 0.5) * 0.12
-        signBoardGroup.add(grain)
-      }
-    }
-    addGrain(-0.02, 0.18, 16, 1.28)
-    addGrain(-0.26, -0.04, 18, 1.36)
 
     const letterBarGeometry = new THREE.BoxGeometry(1, 1, 0.018)
     const addLetterBar = (x, y, width, height, rotation = 0) => {
@@ -911,6 +1088,181 @@ export default function App() {
       ['P', 0.1, -0.15],
     ].forEach(([letter, x, y]) => addBlockLetter(letter, x, y, 0.92))
 
+    const recordX = 1.7
+    const recordZ = -1.6
+    const recordPlayer = new THREE.Group()
+    recordPlayer.position.set(recordX, terrainHeight(recordX, recordZ) - 0.1, recordZ)
+    const toSpawn = new THREE.Vector3(-recordX, 0, 4.15 - recordZ).normalize()
+    recordPlayer.rotation.y = Math.atan2(-toSpawn.x, -toSpawn.z) - Math.PI / 6
+    recordPlayer.rotation.x = - Math.PI / 12
+    scene.add(recordPlayer)
+
+    let phonographLoadCancelled = false
+    let recordDisc = null
+    const hornMouth = new THREE.Object3D()
+    hornMouth.position.set(0, 1.15, -0.07)
+    recordPlayer.add(hornMouth)
+
+    const hornProjection = new THREE.Object3D()
+    hornProjection.position.set(0, 1.48, -0.42)
+    recordPlayer.add(hornProjection)
+
+    const phonographManager = new THREE.LoadingManager()
+    phonographManager.setURLModifier((url) => {
+      const normalizedUrl = url.replace(/\\/g, '/')
+      if (normalizedUrl.endsWith('scene.bin')) return phonographBinUrl
+      if (normalizedUrl.endsWith('textures/Material_baseColor.png') || normalizedUrl.endsWith('Material_baseColor.png')) {
+        return phonographTextureUrl
+      }
+
+      return url
+    })
+
+    new GLTFLoader(phonographManager).load(phonographSceneUrl, (gltf) => {
+      if (phonographLoadCancelled) {
+        disposeObjectTree(gltf.scene)
+        return
+      }
+
+      const phonograph = gltf.scene
+      phonograph.name = 'phonograph'
+      phonograph.position.set(0, 0.01, 0)
+      phonograph.scale.setScalar(0.352)
+
+      phonograph.traverse((object) => {
+        if (!object.isMesh) return
+
+        object.castShadow = true
+        object.receiveShadow = true
+        const materials = Array.isArray(object.material) ? object.material : [object.material]
+        materials.filter(Boolean).forEach((material) => {
+          if (material.map) {
+            material.map.colorSpace = THREE.SRGBColorSpace
+            material.map.anisotropy = 4
+          }
+          material.roughness = Math.max(material.roughness ?? 0.4, 0.56)
+          material.metalness = material.metalness ?? 0
+        })
+      })
+
+      recordPlayer.add(phonograph)
+      recordPlayer.updateWorldMatrix(true, true)
+      phonograph.updateWorldMatrix(true, true)
+
+      recordDisc = phonograph.getObjectByName('record_2')
+      const hornNode = phonograph.getObjectByName('horn_5')
+      const hornMesh = phonograph.getObjectByName('Object_14')
+      if (hornNode && hornMesh?.geometry?.attributes.position) {
+        const positions = hornMesh.geometry.attributes.position
+        const bounds = hornMesh.geometry.boundingBox ?? new THREE.Box3().setFromBufferAttribute(positions)
+        const rimCenter = new THREE.Vector3()
+        let rimCount = 0
+
+        for (let i = 0; i < positions.count; i += 1) {
+          const vertex = new THREE.Vector3().fromBufferAttribute(positions, i)
+          if (vertex.z < bounds.min.z + 0.5) {
+            rimCenter.add(vertex)
+            rimCount += 1
+          }
+        }
+
+        if (rimCount > 0) {
+          rimCenter.multiplyScalar(1 / rimCount)
+          const mouthLocal = hornMesh.localToWorld(rimCenter.clone())
+          const throatLocal = hornNode.localToWorld(new THREE.Vector3())
+          recordPlayer.worldToLocal(mouthLocal)
+          recordPlayer.worldToLocal(throatLocal)
+
+          const exitDirection = mouthLocal.clone().sub(throatLocal).normalize()
+          hornMouth.position.copy(mouthLocal)
+          hornProjection.position.copy(mouthLocal).addScaledVector(exitDirection, 0.48)
+        }
+      }
+    })
+
+    const musicNoteCount = 10
+    const noteTexture = new THREE.CanvasTexture(makeMusicNoteTexture())
+    noteTexture.colorSpace = THREE.SRGBColorSpace
+    const musicNoteSprites = []
+    const musicNoteAges = new Float32Array(musicNoteCount)
+    const musicNoteLifetimes = new Float32Array(musicNoteCount)
+    const musicNoteVelocities = Array.from({ length: musicNoteCount }, () => new THREE.Vector3())
+    const musicNoteRand = seededRandom(2841)
+    const hornOrigin = new THREE.Vector3()
+    const hornTip = new THREE.Vector3()
+    const hornDirection = new THREE.Vector3()
+    const musicNoteRight = new THREE.Vector3()
+    const musicNoteLift = new THREE.Vector3()
+
+    const respawnMusicNote = (index, randomizeAge = false) => {
+      hornMouth.getWorldPosition(hornOrigin)
+      hornProjection.getWorldPosition(hornTip)
+      hornDirection.copy(hornTip).sub(hornOrigin).normalize()
+      musicNoteRight.crossVectors(hornDirection, UP).normalize()
+      musicNoteLift.crossVectors(musicNoteRight, hornDirection).normalize()
+
+      const sprite = musicNoteSprites[index]
+      sprite.position.copy(hornOrigin)
+      sprite.position.addScaledVector(musicNoteRight, (musicNoteRand() - 0.5) * 0.22)
+      sprite.position.addScaledVector(musicNoteLift, (musicNoteRand() - 0.5) * 0.14)
+      sprite.position.y += (musicNoteRand() - 0.5) * 0.1
+      musicNoteVelocities[index]
+        .copy(hornDirection)
+        .multiplyScalar(0.2 + musicNoteRand() * 0.22)
+        .addScaledVector(UP, 0.18 + musicNoteRand() * 0.22)
+        .addScaledVector(musicNoteRight, (musicNoteRand() - 0.5) * 0.28)
+        .addScaledVector(musicNoteLift, (musicNoteRand() - 0.5) * 0.16)
+      musicNoteLifetimes[index] = 2.6 + musicNoteRand() * 1.7
+      musicNoteAges[index] = randomizeAge ? musicNoteRand() * musicNoteLifetimes[index] : 0
+    }
+
+    for (let i = 0; i < musicNoteCount; i += 1) {
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: noteTexture,
+          color: 0xf2d28a,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+          fog: false,
+          toneMapped: false,
+        }),
+      )
+      sprite.scale.setScalar(0.2)
+      scene.add(sprite)
+      musicNoteSprites.push(sprite)
+      respawnMusicNote(i, true)
+    }
+
+    let recordAudio = null
+    let recordObjectUrl = null
+    let audioCancelled = false
+    let audioUnlockRegistered = false
+    const playRecordAudio = () => {
+      if (!recordAudio) return
+      recordAudio.play().catch(() => {})
+    }
+    const removeAudioUnlock = () => {
+      window.removeEventListener('pointerdown', playRecordAudio)
+      window.removeEventListener('keydown', playRecordAudio)
+    }
+    loadRecordTracks().then((tracks) => {
+      if (audioCancelled) return
+
+      const track = tracks[Math.floor(Math.random() * tracks.length)] ?? DEFAULT_RECORD_TRACKS[0]
+      recordObjectUrl = track.src ? null : createProceduralRecordUrl(track)
+      recordAudio = new Audio(track.src || recordObjectUrl)
+      recordAudio.loop = true
+      recordAudio.volume = THREE.MathUtils.clamp(track.volume ?? 0.28, 0, 0.65)
+      recordAudio.preload = 'auto'
+      recordAudio.play().catch(() => {
+        if (audioUnlockRegistered) return
+        audioUnlockRegistered = true
+        window.addEventListener('pointerdown', playRecordAudio, { once: true })
+        window.addEventListener('keydown', playRecordAudio, { once: true })
+      })
+    })
+
     const flameGroup = new THREE.Group()
     campfire.add(flameGroup)
 
@@ -959,25 +1311,41 @@ export default function App() {
     lowGlow.position.set(0, 0.24, 0)
     campfire.add(lowGlow)
 
-    const sparkCount = 90
+    const sparkCount = 125
     const sparkGeometry = new THREE.BufferGeometry()
     const sparkPositions = new Float32Array(sparkCount * 3)
-    const sparkSeeds = Array.from({ length: sparkCount }, (_, index) => {
-      const r = seededRandom(index + 700)
-      return {
-        angle: r() * Math.PI * 2,
-        radius: r() * 0.22,
-        speed: 0.34 + r() * 0.9,
-        offset: r() * 5,
-      }
-    })
+    const sparkVelocities = new Float32Array(sparkCount * 3)
+    const sparkColors = new Float32Array(sparkCount * 3)
+    const sparkAges = new Float32Array(sparkCount)
+    const sparkLifetimes = new Float32Array(sparkCount)
+    const sparkRand = seededRandom(700)
+
+    const respawnFireSpark = (index, randomizeAge = false) => {
+      const angle = sparkRand() * Math.PI * 2
+      const radius = sparkRand() * 0.18
+      const slot = index * 3
+
+      sparkPositions[slot] = Math.cos(angle) * radius
+      sparkPositions[slot + 1] = 0.18 + sparkRand() * 0.26
+      sparkPositions[slot + 2] = Math.sin(angle) * radius
+      sparkVelocities[slot] = Math.cos(angle) * (0.07 + sparkRand() * 0.18) + (sparkRand() - 0.5) * 0.08
+      sparkVelocities[slot + 1] = 0.42 + sparkRand() * 0.78
+      sparkVelocities[slot + 2] = Math.sin(angle) * (0.07 + sparkRand() * 0.18) + (sparkRand() - 0.5) * 0.08
+      sparkLifetimes[index] = 1.1 + sparkRand() * 1.45
+      sparkAges[index] = randomizeAge ? sparkRand() * sparkLifetimes[index] : 0
+    }
+
+    for (let i = 0; i < sparkCount; i += 1) {
+      respawnFireSpark(i, true)
+    }
 
     sparkGeometry.setAttribute('position', new THREE.BufferAttribute(sparkPositions, 3))
+    sparkGeometry.setAttribute('color', new THREE.BufferAttribute(sparkColors, 3))
     const sparks = new THREE.Points(
       sparkGeometry,
       new THREE.PointsMaterial({
-        color: 0xffb15a,
-        size: 0.045,
+        size: 0.055,
+        vertexColors: true,
         transparent: true,
         opacity: 0,
         depthWrite: false,
@@ -1363,16 +1731,56 @@ export default function App() {
         flame.material.opacity = ignition * [0.52, 0.65, 0.34][index]
       })
 
-      sparks.material.opacity = ignition * 0.82
+      if (recordDisc) {
+        recordDisc.rotation.y += dt * 2.85
+      }
+
+      musicNoteSprites.forEach((sprite, index) => {
+        musicNoteAges[index] += dt
+        if (musicNoteAges[index] >= musicNoteLifetimes[index]) {
+          respawnMusicNote(index)
+        }
+
+        const life = THREE.MathUtils.clamp(musicNoteAges[index] / musicNoteLifetimes[index], 0, 1)
+        const flutter = Math.sin(elapsed * 2.5 + index * 0.91) * 0.025
+        sprite.position.addScaledVector(musicNoteVelocities[index], dt)
+        sprite.position.x += flutter * 1.8 * dt
+        sprite.position.z += Math.cos(elapsed * 2.1 + index) * 0.045 * dt
+        sprite.position.y += Math.sin(elapsed * 1.6 + index) * 0.01 * dt
+        sprite.material.opacity = ignition * Math.sin(Math.PI * life) * Math.pow(1 - life, 0.48) * 0.62
+        sprite.scale.setScalar(0.16 + life * 0.28)
+        sprite.material.rotation = Math.sin(elapsed * 1.8 + index) * 0.22
+      })
+
+      sparks.material.opacity = ignition * 0.88
       for (let i = 0; i < sparkCount; i += 1) {
-        const seed = sparkSeeds[i]
-        const life = (elapsed * seed.speed + seed.offset) % 1
-        const drift = life * life
-        sparkPositions[i * 3] = Math.cos(seed.angle + elapsed * 0.35) * (seed.radius + drift * 0.42)
-        sparkPositions[i * 3 + 1] = 0.22 + life * 1.75
-        sparkPositions[i * 3 + 2] = Math.sin(seed.angle + elapsed * 0.35) * (seed.radius + drift * 0.42)
+        sparkAges[i] += dt
+        if (sparkAges[i] >= sparkLifetimes[i]) {
+          respawnFireSpark(i)
+        }
+
+        const slot = i * 3
+        const life = THREE.MathUtils.clamp(sparkAges[i] / sparkLifetimes[i], 0, 1)
+        const swirl = Math.sin(elapsed * 3.4 + i * 1.7) * 0.032 * (1 - life)
+        sparkVelocities[slot] += swirl * dt
+        sparkVelocities[slot + 2] += Math.cos(elapsed * 2.8 + i) * 0.026 * dt
+        sparkVelocities[slot + 1] = Math.max(
+          0.12 + (1 - life) * 0.24,
+          sparkVelocities[slot + 1] - dt * (0.04 + life * 0.08),
+        )
+
+        sparkPositions[slot] += sparkVelocities[slot] * dt
+        sparkPositions[slot + 1] += sparkVelocities[slot + 1] * dt
+        sparkPositions[slot + 2] += sparkVelocities[slot + 2] * dt
+
+        const fade = Math.sin(Math.PI * life) * Math.pow(1 - life, 1.45) * ignition
+        const ember = 0.42 + life * 0.58
+        sparkColors[slot] = fade * (2.2 - life * 0.7)
+        sparkColors[slot + 1] = fade * (0.72 - life * 0.42)
+        sparkColors[slot + 2] = fade * 0.12 * ember
       }
       sparkGeometry.attributes.position.needsUpdate = true
+      sparkGeometry.attributes.color.needsUpdate = true
 
       const requestedTargetId = cameraTargetRef.current
       if (requestedTargetId) {
@@ -1596,6 +2004,16 @@ export default function App() {
 
     return () => {
       cancelAnimationFrame(raf)
+      phonographLoadCancelled = true
+      audioCancelled = true
+      removeAudioUnlock()
+      if (recordAudio) {
+        recordAudio.pause()
+        recordAudio.src = ''
+      }
+      if (recordObjectUrl) {
+        URL.revokeObjectURL(recordObjectUrl)
+      }
       mount.removeEventListener('pointerdown', onPointerDown)
       mount.removeEventListener('pointermove', onPointerMove)
       mount.removeEventListener('pointerup', onPointerUp)
@@ -1671,9 +2089,9 @@ export default function App() {
         <strong>{focusedData?.world ?? (scopeActiveState ? 'NO LOCK' : 'ONLINE')}</strong>
       </div>
 
-      <div className="controls-hud" aria-label="Controls">
-        <span>DRAG LOOK</span>
-        <span>WASD MOVE</span>
+      <div className={`controls-hud ${controlsVisible ? 'is-visible' : ''}`} aria-label="Controls">
+        <span>DRAG LOOK | </span>
+        <span>WASD MOVE | </span>
         <span>SPACE TO SCOPE IN</span>
       </div>
 
