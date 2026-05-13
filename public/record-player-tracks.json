@@ -1,25 +1,9 @@
 {
   "tracks": [
     {
-      "title": "Campfire Drift",
-      "tempo": 68,
-      "durationSeconds": 18,
-      "volume": 0.28,
-      "notes": [196, 246.94, 293.66, 329.63, 293.66, 246.94, 220, 246.94]
-    },
-    {
-      "title": "Moonlit Signal",
-      "tempo": 76,
-      "durationSeconds": 20,
-      "volume": 0.24,
-      "notes": [174.61, 220, 261.63, 329.63, 392, 329.63, 261.63, 220]
-    },
-    {
-      "title": "Deep Space Waltz",
-      "tempo": 58,
-      "durationSeconds": 21,
-      "volume": 0.26,
-      "notes": [164.81, 196, 246.94, 293.66, 246.94, 196, 185, 220]
+      "title": "Clair de Lune - Debussy",
+      "src": "/audio/record-player/Clair_de_Lune.mp3",
+      "volume": 0.2
     }
   ]
 }

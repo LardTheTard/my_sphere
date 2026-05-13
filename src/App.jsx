@@ -10,8 +10,9 @@ const CAMPFIRE_RADIUS = 1.05
 const EYE_HEIGHT = 1.54
 const UP = new THREE.Vector3(0, 1, 0)
 const RECORD_TRACK_CONFIG_URL = '/record-player-tracks.json'
-const CONTROLS_HINT_DURATION_MS = 15000
+const CONTROLS_HINT_DURATION_MS = 30000
 const SCOPE_IDLE_REMINDER_MS = 30000
+const SIGN_READ_DISTANCE = 5.2
 
 const DEFAULT_RECORD_TRACKS = [
   {
@@ -598,6 +599,7 @@ function PortfolioSidebar({ open, activeId, onSelect, onClose }) {
 
 export default function App() {
   const mountRef = useRef(null)
+  const cursorRef = useRef(null)
   const scopeActiveRef = useRef(false)
   const discoveredIdsRef = useRef(new Set())
   const discoveryEventsRef = useRef([])
@@ -611,6 +613,9 @@ export default function App() {
   const [ignited, setIgnited] = useState(false)
   const [controlsVisible, setControlsVisible] = useState(true)
   const [scopeUseCount, setScopeUseCount] = useState(0)
+  const [readSignAvailable, setReadSignAvailable] = useState(false)
+  const readSignAvailableRef = useRef(false)
+  const [signPanelOpen, setSignPanelOpen] = useState(false)
 
   const activeData = useMemo(() => DISCOVERY_BY_ID[activeDiscovery] ?? null, [activeDiscovery])
   const focusedData = useMemo(() => DISCOVERY_BY_ID[focusedTarget] ?? null, [focusedTarget])
@@ -662,6 +667,20 @@ export default function App() {
 
     return () => window.clearTimeout(reminderTimer)
   }, [controlsVisible, ignited, scopeActiveState, scopeUseCount])
+
+  useEffect(() => {
+    const cursor = cursorRef.current
+    if (!cursor) return undefined
+
+    const moveCursor = (event) => {
+      cursor.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-4px, -4px)`
+    }
+
+    cursor.style.transform = `translate3d(${window.innerWidth / 2}px, ${window.innerHeight / 2}px, 0) translate(-4px, -4px)`
+    window.addEventListener('pointermove', moveCursor)
+
+    return () => window.removeEventListener('pointermove', moveCursor)
+  }, [])
 
   useEffect(() => {
     const mount = mountRef.current
@@ -1002,9 +1021,9 @@ export default function App() {
     signGroup.rotation.y = 0.18
     scene.add(signGroup)
 
-    const signTopPlankMaterial = createWoodMaterial(805, 0x8a5630)
-    const signBottomPlankMaterial = createWoodMaterial(811, 0x70411f)
-    const signPostMaterial = createWoodMaterial(819, 0x5a321b, 0.75, 2.8)
+    const signTopPlankMaterial = createWoodMaterial(805, 0xb27445)
+    const signBottomPlankMaterial = createWoodMaterial(811, 0x965c34)
+    const signPostMaterial = createWoodMaterial(819, 0x75482b, 0.75, 2.8)
     const signTextMaterial = new THREE.MeshBasicMaterial({
       color: 0x050505,
       toneMapped: false,
@@ -1037,6 +1056,20 @@ export default function App() {
     bottomPlank.receiveShadow = true
     signBoardGroup.add(bottomPlank)
 
+    const signInteractionMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(1.72, 0.48, 0.12),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        colorWrite: false,
+      }),
+    )
+    signInteractionMesh.geometry.computeBoundingBox()
+    signInteractionMesh.position.set(-0.01, -0.04, 0.07)
+    signBoardGroup.add(signInteractionMesh)
+
     const letterBarGeometry = new THREE.BoxGeometry(1, 1, 0.018)
     const addLetterBar = (x, y, width, height, rotation = 0) => {
       const bar = new THREE.Mesh(letterBarGeometry, signTextMaterial)
@@ -1067,6 +1100,26 @@ export default function App() {
         addLetterBar(x + halfW * 0.35, y + halfH * 0.32, t, h * 0.62, -0.72)
         addLetterBar(x + halfW * 0.35, y - halfH * 0.32, t, h * 0.62, 0.72)
       }
+      if (letter === 'W') {
+        addLetterBar(x - halfW, y + t * 0.8, t, h - t * 1.6)
+        addLetterBar(x + halfW, y + t * 0.8, t, h - t * 1.6)
+        addLetterBar(x - halfW * 0.22, y - halfH * 0.34, t, h * 0.62, -0.36)
+        addLetterBar(x + halfW * 0.22, y - halfH * 0.34, t, h * 0.62, 0.36)
+      }
+      if (letter === 'I') {
+        addLetterBar(x, y, t, h)
+        addLetterBar(x, y + halfH, w, t)
+        addLetterBar(x, y - halfH, w, t)
+      }
+      if (letter === 'T') {
+        addLetterBar(x, y, t, h)
+        addLetterBar(x, y + halfH, w, t)
+      }
+      if (letter === 'H') {
+        addLetterBar(x - halfW, y, t, h)
+        addLetterBar(x + halfW, y, t, h)
+        addLetterBar(x, y, w, t)
+      }
       if (letter === 'U') {
         addLetterBar(x - halfW, y + t * 0.8, t, h - t * 1.6)
         addLetterBar(x + halfW, y + t * 0.8, t, h - t * 1.6)
@@ -1078,15 +1131,45 @@ export default function App() {
         addLetterBar(x, y, w, t)
         addLetterBar(x + halfW, y + halfH * 0.5, t, h * 0.5)
       }
+      if (letter === 'S') {
+        addLetterBar(x, y + halfH, w, t)
+        addLetterBar(x, y, w, t)
+        addLetterBar(x, y - halfH, w, t)
+        addLetterBar(x - halfW, y + halfH * 0.5, t, h * 0.5)
+        addLetterBar(x + halfW, y - halfH * 0.5, t, h * 0.5)
+      }
+      if (letter === 'C') {
+        addLetterBar(x - halfW, y, t, h)
+        addLetterBar(x, y + halfH, w, t)
+        addLetterBar(x, y - halfH, w, t)
+      }
+      if (letter === 'E') {
+        addLetterBar(x - halfW, y, t, h)
+        addLetterBar(x, y + halfH, w, t)
+        addLetterBar(x, y, w, t)
+        addLetterBar(x, y - halfH, w, t)
+      }
     }
-    ;[
-      ['L', -0.29, 0.08],
-      ['O', -0.1, 0.08],
-      ['O', 0.1, 0.08],
-      ['K', 0.31, 0.08],
-      ['U', -0.1, -0.15],
-      ['P', 0.1, -0.15],
-    ].forEach(([letter, x, y]) => addBlockLetter(letter, x, y, 0.92))
+
+    const addBlockText = (text, y, scale) => {
+      const advance = 0.151 * scale
+      const spaceAdvance = 0.22 * scale
+      const width = [...text].reduce((total, letter) => total + (letter === ' ' ? spaceAdvance : advance), 0) - advance
+      let x = -width / 2
+
+      ;[...text].forEach((letter) => {
+        if (letter === ' ') {
+          x += spaceAdvance
+          return
+        }
+
+        addBlockLetter(letter, x, y, scale)
+        x += advance
+      })
+    }
+
+    addBlockText('LOOK UP', 0.08, 0.64)
+    addBlockText('WITH SCOPE', -0.15, 0.5)
 
     const recordX = 1.7
     const recordZ = -1.6
@@ -1539,9 +1622,12 @@ export default function App() {
 
     const raycaster = new THREE.Raycaster()
     const center = new THREE.Vector2(0, 0)
+    const pointerNdc = new THREE.Vector2()
     const cameraDirection = new THREE.Vector3()
     const targetDirection = new THREE.Vector3()
     const planetTint = new THREE.Color()
+    const signCorner = new THREE.Vector3()
+    const signCenter = new THREE.Vector3()
     const pressed = new Set()
     const velocity = new THREE.Vector3()
     const forward = new THREE.Vector3()
@@ -1584,6 +1670,12 @@ export default function App() {
       setFocusedTarget(id)
     }
 
+    const setSignPromptAvailable = (value) => {
+      if (readSignAvailableRef.current === value) return
+      readSignAvailableRef.current = value
+      setReadSignAvailable(value)
+    }
+
     const clampPlayer = () => {
       const flatLength = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z)
 
@@ -1603,9 +1695,69 @@ export default function App() {
       camera.position.y = terrainHeight(camera.position.x, camera.position.z) + EYE_HEIGHT
     }
 
-    const openFocusedPlanet = () => {
-      if (!scopeActiveRef.current || !localFocus) return
-      revealDiscovery(localFocus)
+    const getDiscoveredPlanetIdAtPointer = (event) => {
+      const rect = mount.getBoundingClientRect()
+      pointerNdc.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1)
+      raycaster.setFromCamera(pointerNdc, camera)
+
+      const hit = raycaster.intersectObjects(planetMeshes, false).find(({ object }) => object.userData.discovered)
+      return hit?.object.userData.discoveryId ?? null
+    }
+
+    const isReadableSignAtPointer = (event) => {
+      if (scopeActiveRef.current) return false
+
+      camera.updateMatrixWorld()
+      signInteractionMesh.updateWorldMatrix(true, false)
+      signInteractionMesh.getWorldPosition(signCenter)
+      if (signCenter.distanceTo(camera.position) > SIGN_READ_DISTANCE) return false
+
+      const rect = mount.getBoundingClientRect()
+      const bounds = signInteractionMesh.geometry.boundingBox
+      let minX = Infinity
+      let minY = Infinity
+      let maxX = -Infinity
+      let maxY = -Infinity
+
+      ;[bounds.min.x, bounds.max.x].forEach((x) => {
+        ;[bounds.min.y, bounds.max.y].forEach((y) => {
+          signCorner.set(x, y, 0).applyMatrix4(signInteractionMesh.matrixWorld).project(camera)
+          minX = Math.min(minX, rect.left + (signCorner.x * 0.5 + 0.5) * rect.width)
+          maxX = Math.max(maxX, rect.left + (signCorner.x * 0.5 + 0.5) * rect.width)
+          minY = Math.min(minY, rect.top + (-signCorner.y * 0.5 + 0.5) * rect.height)
+          maxY = Math.max(maxY, rect.top + (-signCorner.y * 0.5 + 0.5) * rect.height)
+        })
+      })
+
+      return event.clientX >= minX && event.clientX <= maxX && event.clientY >= minY && event.clientY <= maxY
+    }
+
+    const openFocusedPlanet = (event = null) => {
+      if (scopeActiveRef.current) {
+        if (localFocus) revealDiscovery(localFocus)
+        return
+      }
+
+      const clickedId = event ? getDiscoveredPlanetIdAtPointer(event) : null
+      if (clickedId) {
+        revealDiscovery(clickedId)
+        return
+      }
+
+      const focusedPlanet = planetMeshes.find((planet) => planet.userData.discoveryId === localFocus)
+      if (focusedPlanet?.userData.discovered) {
+        revealDiscovery(localFocus)
+      }
+    }
+
+    const tryOpenSignPanel = (event = null) => {
+      if (!readSignAvailableRef.current && !(event && isReadableSignAtPointer(event))) return false
+      setSignPanelOpen(true)
+      return true
+    }
+
+    const onPointerHover = (event) => {
+      setSignPromptAvailable(isReadableSignAtPointer(event))
     }
 
     const onPointerDown = (event) => {
@@ -1638,6 +1790,10 @@ export default function App() {
       pitch = THREE.MathUtils.clamp(pitch - dy * 0.0028, -0.65, 1.18)
     }
 
+    const onPointerLeave = () => {
+      setSignPromptAvailable(false)
+    }
+
     const onPointerUp = (event) => {
       if (event.button === 2) {
         setScopeActive(false)
@@ -1647,7 +1803,9 @@ export default function App() {
       if (!drag.active || drag.pointerId !== event.pointerId) return
 
       if (drag.moved < 7) {
-        openFocusedPlanet()
+        if (!tryOpenSignPanel(event)) {
+          openFocusedPlanet(event)
+        }
       }
 
       drag.active = false
@@ -1664,6 +1822,7 @@ export default function App() {
       if (event.code === 'Escape') {
         setActiveDiscovery(null)
         setSidebarOpen(false)
+        setSignPanelOpen(false)
         setScopeActive(false)
       }
       if (event.code === 'Space') {
@@ -1673,7 +1832,9 @@ export default function App() {
       pressed.add(event.code)
 
       if (event.code === 'Enter') {
-        openFocusedPlanet()
+        if (!tryOpenSignPanel()) {
+          openFocusedPlanet()
+        }
       }
     }
 
@@ -1701,7 +1862,9 @@ export default function App() {
     mount.addEventListener('pointerdown', onPointerDown)
     mount.addEventListener('pointermove', onPointerMove)
     mount.addEventListener('pointerup', onPointerUp)
+    mount.addEventListener('pointerleave', onPointerLeave)
     mount.addEventListener('contextmenu', onContextMenu)
+    window.addEventListener('pointermove', onPointerHover)
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
     window.addEventListener('blur', onBlur)
@@ -1871,8 +2034,9 @@ export default function App() {
       burstParticles.material.opacity = THREE.MathUtils.lerp(burstParticles.material.opacity, activeBurstParticles ? 1 : 0, 0.08)
 
       raycaster.setFromCamera(center, camera)
-      const hits = scopeActiveRef.current ? raycaster.intersectObjects(planetMeshes, false) : []
-      let focusedId = hits.length ? hits[0].object.userData.discoveryId : null
+      const hits = raycaster.intersectObjects(planetMeshes, false)
+      const focusedHit = hits.find(({ object }) => scopeActiveRef.current || object.userData.discovered)
+      let focusedId = focusedHit?.object.userData.discoveryId ?? null
       let proximity = 0
 
       if (scopeActiveRef.current) {
@@ -2017,7 +2181,9 @@ export default function App() {
       mount.removeEventListener('pointerdown', onPointerDown)
       mount.removeEventListener('pointermove', onPointerMove)
       mount.removeEventListener('pointerup', onPointerUp)
+      mount.removeEventListener('pointerleave', onPointerLeave)
       mount.removeEventListener('contextmenu', onContextMenu)
+      window.removeEventListener('pointermove', onPointerHover)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', onBlur)
@@ -2047,6 +2213,11 @@ export default function App() {
         logan&apos;s portfolio
       </div>
       <div className="vignette" aria-hidden="true" />
+
+      <div ref={cursorRef} className={`reticle ${readSignAvailable && !signPanelOpen ? 'is-reading-sign' : ''}`} aria-hidden="true">
+        <span className="reticle-dot" />
+        <span className="reticle-prompt">read sign?</span>
+      </div>
 
       <header className="hud-brand">
         <span>LOGAN ZHAO'S</span>
@@ -2094,6 +2265,18 @@ export default function App() {
         <span>WASD MOVE | </span>
         <span>SPACE TO SCOPE IN</span>
       </div>
+
+      <aside className={`sign-help-panel ${signPanelOpen ? 'is-open' : ''}`} aria-label="Sign instructions">
+        <button className="sign-help-close" type="button" onClick={() => setSignPanelOpen(false)} aria-label="Close sign">
+          x
+        </button>
+        <h2>Controls</h2>
+        <p>Drag to look around the campfire. Use WASD to move.</p>
+        <p>Hold Space, right mouse, or the Scope button to scan the sky.</p>
+        <p>Aim the scope at a signal until a planet wakes up, then click discovered planets to open portfolio sections.</p>
+        <p>Click on objects to interact with them.</p>
+        <p>The Sections button lists every discovered destination.</p>
+      </aside>
 
       <PortfolioSidebar
         open={sidebarOpen}
