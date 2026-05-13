@@ -2394,7 +2394,7 @@ export default function App() {
         aria-expanded={sidebarOpen}
         onClick={() => setSidebarOpen((open) => !open)}
       >
-        SECTIONS
+        PLANETS
       </button>
 
       <button
@@ -2440,7 +2440,7 @@ export default function App() {
         <h2>Controls</h2>
         <p>Hold Space, right mouse, or the Scope button to scan the sky.</p>
         <p>Aim the scope at a signal until a planet wakes up, then click discovered planets to open portfolio sections.</p>
-        <p>The Sections button lists every discovered destination.</p>
+        <p>The PLANETS button lists every destination for easier portfolio access.</p>
       </aside>
 
       <PortfolioSidebar
