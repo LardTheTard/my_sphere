@@ -221,9 +221,11 @@ canvas {
   color: rgba(255, 255, 255, 0.94);
   font-family: "Courier New", ui-monospace, monospace;
   font-size: 0.82rem;
+  max-width: min(360px, calc(100vw - 48px));
   opacity: 0;
+  overflow: hidden;
   text-shadow: 0 0 12px rgba(0, 0, 0, 0.85);
-  text-transform: lowercase;
+  text-overflow: ellipsis;
   transform: translateY(-50%) translateX(-4px);
   transition:
     opacity 180ms ease,
@@ -231,7 +233,7 @@ canvas {
   white-space: nowrap;
 }
 
-.reticle.is-reading-sign .reticle-prompt {
+.reticle.is-showing-prompt .reticle-prompt {
   opacity: 1;
   transform: translateY(-50%) translateX(0);
 }
@@ -291,6 +293,30 @@ canvas {
     opacity 120ms linear,
     transform 120ms linear,
     border-color 120ms linear;
+}
+
+.scope-completion-band {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(456px, 67vmin);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    var(--scope-progress-color, #f2f59f) 0turn calc(var(--scope-open-progress, 0) * 1turn),
+    rgba(246, 241, 232, 0.08) 0turn 1turn
+  );
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--scope-progress-color, #f2f59f) 46%, transparent));
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 140ms ease;
+  -webkit-mask: radial-gradient(circle, transparent 0 66%, #000 67% 72%, transparent 73%);
+  mask: radial-gradient(circle, transparent 0 66%, #000 67% 72%, transparent 73%);
+}
+
+.space-app.is-scope-locking .scope-completion-band {
+  opacity: 0.2;
 }
 
 .scope-crosshair::before,

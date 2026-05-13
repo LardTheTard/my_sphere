@@ -12,7 +12,9 @@ const UP = new THREE.Vector3(0, 1, 0)
 const RECORD_TRACK_CONFIG_URL = '/record-player-tracks.json'
 const CONTROLS_HINT_DURATION_MS = 30000
 const SCOPE_IDLE_REMINDER_MS = 30000
-const SIGN_READ_DISTANCE = 5.2
+const SIGN_READ_DISTANCE = 6.5
+const PHONOGRAPH_INTERACT_DISTANCE = 6.5
+const SCOPE_AUTO_OPEN_DURATION = 1
 
 const DEFAULT_RECORD_TRACKS = [
   {
@@ -607,6 +609,8 @@ export default function App() {
   const [scopeActiveState, setScopeActiveState] = useState(false)
   const [scopeProximity, setScopeProximity] = useState(0)
   const scopeProximityRef = useRef(0)
+  const [scopeHoldProgress, setScopeHoldProgress] = useState(0)
+  const scopeHoldProgressRef = useRef(0)
   const [focusedTarget, setFocusedTarget] = useState(null)
   const [activeDiscovery, setActiveDiscovery] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -616,13 +620,26 @@ export default function App() {
   const [readSignAvailable, setReadSignAvailable] = useState(false)
   const readSignAvailableRef = useRef(false)
   const [signPanelOpen, setSignPanelOpen] = useState(false)
+  const [phonographPromptAvailable, setPhonographPromptAvailableState] = useState(false)
+  const phonographPromptAvailableRef = useRef(false)
+  const [currentRecordTitle, setCurrentRecordTitle] = useState('')
 
   const activeData = useMemo(() => DISCOVERY_BY_ID[activeDiscovery] ?? null, [activeDiscovery])
   const focusedData = useMemo(() => DISCOVERY_BY_ID[focusedTarget] ?? null, [focusedTarget])
+  const cursorPrompt = useMemo(() => {
+    if (signPanelOpen) return ''
+    if (readSignAvailable) return 'read sign?'
+    if (phonographPromptAvailable && currentRecordTitle) return `now playing: ${currentRecordTitle}`
+    return ''
+  }, [currentRecordTitle, phonographPromptAvailable, readSignAvailable, signPanelOpen])
 
   const setScopeActive = useCallback((value) => {
     scopeActiveRef.current = value
     setScopeActiveState(value)
+    if (!value) {
+      scopeHoldProgressRef.current = 0
+      setScopeHoldProgress(0)
+    }
     if (value) {
       setControlsVisible(false)
       setScopeUseCount((count) => count + 1)
@@ -1064,6 +1081,7 @@ export default function App() {
         opacity: 0,
         depthWrite: false,
         colorWrite: false,
+        side: THREE.DoubleSide,
       }),
     )
     signInteractionMesh.geometry.computeBoundingBox()
@@ -1179,6 +1197,21 @@ export default function App() {
     recordPlayer.rotation.y = Math.atan2(-toSpawn.x, -toSpawn.z) - Math.PI / 6
     recordPlayer.rotation.x = - Math.PI / 12
     scene.add(recordPlayer)
+
+    const recordInteractionMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(1.45, 1.55, 1.35),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        colorWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    )
+    recordInteractionMesh.geometry.computeBoundingBox()
+    recordInteractionMesh.position.set(0, 0.68, -0.08)
+    recordPlayer.add(recordInteractionMesh)
 
     let phonographLoadCancelled = false
     let recordDisc = null
@@ -1317,6 +1350,9 @@ export default function App() {
       respawnMusicNote(i, true)
     }
 
+    let recordTracks = DEFAULT_RECORD_TRACKS
+    let recordTrackIndex = 0
+    let recordTrackTitle = ''
     let recordAudio = null
     let recordObjectUrl = null
     let recordMaxVolume = DEFAULT_RECORD_TRACKS[0].volume ?? 0.28
@@ -1324,28 +1360,75 @@ export default function App() {
     let audioUnlockRegistered = false
     const playRecordAudio = () => {
       if (!recordAudio) return
-      recordAudio.play().catch(() => {})
+      recordAudio
+        .play()
+        .then(() => {
+          audioUnlockRegistered = false
+          removeAudioUnlock()
+        })
+        .catch(() => {})
     }
     const removeAudioUnlock = () => {
       window.removeEventListener('pointerdown', playRecordAudio)
       window.removeEventListener('keydown', playRecordAudio)
     }
-    loadRecordTracks().then((tracks) => {
-      if (audioCancelled) return
 
-      const track = tracks[Math.floor(Math.random() * tracks.length)] ?? DEFAULT_RECORD_TRACKS[0]
+    const revokeRecordObjectUrl = () => {
+      if (!recordObjectUrl) return
+      URL.revokeObjectURL(recordObjectUrl)
+      recordObjectUrl = null
+    }
+
+    const registerAudioUnlock = () => {
+      if (audioUnlockRegistered) return
+      audioUnlockRegistered = true
+      window.addEventListener('pointerdown', playRecordAudio, { once: true })
+      window.addEventListener('keydown', playRecordAudio, { once: true })
+    }
+
+    const setRecordTrack = (index) => {
+      if (audioCancelled || recordTracks.length === 0) return
+
+      const normalizedIndex = ((index % recordTracks.length) + recordTracks.length) % recordTracks.length
+      const track = recordTracks[normalizedIndex] ?? DEFAULT_RECORD_TRACKS[0]
+      const previousVolume = recordAudio?.volume ?? 0
+
+      if (recordAudio) {
+        recordAudio.pause()
+        recordAudio.src = ''
+      }
+      revokeRecordObjectUrl()
+
+      recordTrackIndex = normalizedIndex
       recordObjectUrl = track.src ? null : createProceduralRecordUrl(track)
       recordAudio = new Audio(track.src || recordObjectUrl)
       recordAudio.loop = true
       recordMaxVolume = THREE.MathUtils.clamp(track.volume ?? 0.28, 0, 0.65)
-      recordAudio.volume = 0
+      recordAudio.volume = Math.min(previousVolume, recordMaxVolume)
       recordAudio.preload = 'auto'
-      recordAudio.play().catch(() => {
-        if (audioUnlockRegistered) return
-        audioUnlockRegistered = true
-        window.addEventListener('pointerdown', playRecordAudio, { once: true })
-        window.addEventListener('keydown', playRecordAudio, { once: true })
-      })
+      recordTrackTitle = track.title ?? DEFAULT_RECORD_TRACKS[0].title
+      setCurrentRecordTitle(recordTrackTitle)
+      recordAudio
+        .play()
+        .then(() => {
+          audioUnlockRegistered = false
+          removeAudioUnlock()
+        })
+        .catch(registerAudioUnlock)
+    }
+
+    const skipRecordTrack = () => {
+      if (recordTracks.length === 0) return false
+
+      setRecordTrack(recordTracks.length > 1 ? recordTrackIndex + 1 : recordTrackIndex)
+      return true
+    }
+
+    loadRecordTracks().then((tracks) => {
+      if (audioCancelled) return
+
+      recordTracks = tracks
+      setRecordTrack(Math.floor(Math.random() * recordTracks.length))
     })
 
     const flameGroup = new THREE.Group()
@@ -1628,8 +1711,7 @@ export default function App() {
     const cameraDirection = new THREE.Vector3()
     const targetDirection = new THREE.Vector3()
     const planetTint = new THREE.Color()
-    const signCorner = new THREE.Vector3()
-    const signCenter = new THREE.Vector3()
+    const interactionCenter = new THREE.Vector3()
     const pressed = new Set()
     const velocity = new THREE.Vector3()
     const forward = new THREE.Vector3()
@@ -1646,6 +1728,9 @@ export default function App() {
     let pitch = -0.17
     let cameraPanTarget = null
     let localFocus = null
+    let scopeHoldTarget = null
+    let scopeHoldElapsed = 0
+    let scopeAutoOpenedTarget = null
     const scopeSparkTimes = new Map()
     let hasSetIgnited = false
     let lastTime = performance.now()
@@ -1672,10 +1757,60 @@ export default function App() {
       setFocusedTarget(id)
     }
 
+    const setScopeHoldProgressValue = (value, force = false) => {
+      const nextProgress = THREE.MathUtils.clamp(value, 0, 1)
+      if (!force && Math.abs(nextProgress - scopeHoldProgressRef.current) < 0.012) return
+
+      scopeHoldProgressRef.current = nextProgress
+      setScopeHoldProgress(nextProgress)
+    }
+
+    const resetScopeHold = () => {
+      scopeHoldTarget = null
+      scopeHoldElapsed = 0
+      scopeAutoOpenedTarget = null
+      setScopeHoldProgressValue(0, scopeHoldProgressRef.current !== 0)
+    }
+
+    const updateScopeAutoOpen = (id, dt) => {
+      if (!scopeActiveRef.current || !id) {
+        resetScopeHold()
+        return
+      }
+
+      if (scopeHoldTarget !== id) {
+        scopeHoldTarget = id
+        scopeHoldElapsed = 0
+        scopeAutoOpenedTarget = null
+        setScopeHoldProgressValue(0, scopeHoldProgressRef.current !== 0)
+      }
+
+      if (scopeAutoOpenedTarget === id) {
+        setScopeHoldProgressValue(0, scopeHoldProgressRef.current !== 0)
+        return
+      }
+
+      scopeHoldElapsed = Math.min(SCOPE_AUTO_OPEN_DURATION, scopeHoldElapsed + dt)
+      const progress = scopeHoldElapsed / SCOPE_AUTO_OPEN_DURATION
+      setScopeHoldProgressValue(progress, progress >= 1)
+
+      if (progress >= 1) {
+        scopeAutoOpenedTarget = id
+        setScopeHoldProgressValue(0, true)
+        revealDiscovery(id)
+      }
+    }
+
     const setSignPromptAvailable = (value) => {
       if (readSignAvailableRef.current === value) return
       readSignAvailableRef.current = value
       setReadSignAvailable(value)
+    }
+
+    const setPhonographPromptAvailable = (value) => {
+      if (phonographPromptAvailableRef.current === value) return
+      phonographPromptAvailableRef.current = value
+      setPhonographPromptAvailableState(value)
     }
 
     const clampPlayer = () => {
@@ -1697,46 +1832,53 @@ export default function App() {
       camera.position.y = terrainHeight(camera.position.x, camera.position.z) + EYE_HEIGHT
     }
 
-    const getDiscoveredPlanetIdAtPointer = (event) => {
+    const setRaycasterFromPointer = (event) => {
       const rect = mount.getBoundingClientRect()
+      if (
+        event.clientX < rect.left ||
+        event.clientX > rect.right ||
+        event.clientY < rect.top ||
+        event.clientY > rect.bottom
+      ) {
+        return false
+      }
+
       pointerNdc.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1)
+      camera.updateMatrixWorld()
       raycaster.setFromCamera(pointerNdc, camera)
+      return true
+    }
+
+    const getDiscoveredPlanetIdAtPointer = (event) => {
+      if (!setRaycasterFromPointer(event)) return null
 
       const hit = raycaster.intersectObjects(planetMeshes, false).find(({ object }) => object.userData.discovered)
       return hit?.object.userData.discoveryId ?? null
     }
 
-    const isReadableSignAtPointer = (event) => {
+    const isInteractionBoxAtPointer = (event, interactionMesh, maxDistance) => {
       if (scopeActiveRef.current) return false
 
-      camera.updateMatrixWorld()
-      signInteractionMesh.updateWorldMatrix(true, false)
-      signInteractionMesh.getWorldPosition(signCenter)
-      if (signCenter.distanceTo(camera.position) > SIGN_READ_DISTANCE) return false
+      interactionMesh.updateWorldMatrix(true, false)
+      interactionMesh.getWorldPosition(interactionCenter)
+      if (interactionCenter.distanceTo(camera.position) > maxDistance) return false
+      if (!setRaycasterFromPointer(event)) return false
 
-      const rect = mount.getBoundingClientRect()
-      const bounds = signInteractionMesh.geometry.boundingBox
-      let minX = Infinity
-      let minY = Infinity
-      let maxX = -Infinity
-      let maxY = -Infinity
-
-      ;[bounds.min.x, bounds.max.x].forEach((x) => {
-        ;[bounds.min.y, bounds.max.y].forEach((y) => {
-          signCorner.set(x, y, 0).applyMatrix4(signInteractionMesh.matrixWorld).project(camera)
-          minX = Math.min(minX, rect.left + (signCorner.x * 0.5 + 0.5) * rect.width)
-          maxX = Math.max(maxX, rect.left + (signCorner.x * 0.5 + 0.5) * rect.width)
-          minY = Math.min(minY, rect.top + (-signCorner.y * 0.5 + 0.5) * rect.height)
-          maxY = Math.max(maxY, rect.top + (-signCorner.y * 0.5 + 0.5) * rect.height)
-        })
-      })
-
-      return event.clientX >= minX && event.clientX <= maxX && event.clientY >= minY && event.clientY <= maxY
+      return raycaster.intersectObject(interactionMesh, false).some((hit) => hit.distance <= maxDistance)
     }
+
+    const isReadableSignAtPointer = (event) => isInteractionBoxAtPointer(event, signInteractionMesh, SIGN_READ_DISTANCE)
+
+    const isSkippableRecordAtPointer = (event) =>
+      Boolean(recordAudio && recordTrackTitle) && isInteractionBoxAtPointer(event, recordInteractionMesh, PHONOGRAPH_INTERACT_DISTANCE)
 
     const openFocusedPlanet = (event = null) => {
       if (scopeActiveRef.current) {
-        if (localFocus) revealDiscovery(localFocus)
+        if (localFocus) {
+          scopeAutoOpenedTarget = localFocus
+          setScopeHoldProgressValue(0, scopeHoldProgressRef.current !== 0)
+          revealDiscovery(localFocus)
+        }
         return
       }
 
@@ -1758,8 +1900,16 @@ export default function App() {
       return true
     }
 
+    const trySkipRecord = (event = null) => {
+      if (!phonographPromptAvailableRef.current && !(event && isSkippableRecordAtPointer(event))) return false
+      skipRecordTrack()
+      return true
+    }
+
     const onPointerHover = (event) => {
-      setSignPromptAvailable(isReadableSignAtPointer(event))
+      const signAvailable = isReadableSignAtPointer(event)
+      setSignPromptAvailable(signAvailable)
+      setPhonographPromptAvailable(!signAvailable && isSkippableRecordAtPointer(event))
     }
 
     const onPointerDown = (event) => {
@@ -1794,6 +1944,7 @@ export default function App() {
 
     const onPointerLeave = () => {
       setSignPromptAvailable(false)
+      setPhonographPromptAvailable(false)
     }
 
     const onPointerUp = (event) => {
@@ -1805,7 +1956,7 @@ export default function App() {
       if (!drag.active || drag.pointerId !== event.pointerId) return
 
       if (drag.moved < 7) {
-        if (!tryOpenSignPanel(event)) {
+        if (!tryOpenSignPanel(event) && !trySkipRecord(event)) {
           openFocusedPlanet(event)
         }
       }
@@ -1834,7 +1985,7 @@ export default function App() {
       pressed.add(event.code)
 
       if (event.code === 'Enter') {
-        if (!tryOpenSignPanel()) {
+        if (!tryOpenSignPanel() && !trySkipRecord()) {
           openFocusedPlanet()
         }
       }
@@ -2074,6 +2225,7 @@ export default function App() {
         setScopeProximity(proximity)
       }
       setFocus(focusedId, elapsed)
+      updateScopeAutoOpen(focusedId, dt)
 
       planetMeshes.forEach((planet, index) => {
         const discovery = DISCOVERIES[index]
@@ -2132,11 +2284,11 @@ export default function App() {
           ring.material.opacity,
           planet.userData.discovered
             ? focused
-              ? 0.36
-              : 0.25
+              ? 0.15
+              : 0.15
             : scopeAmount
               ? focused
-                ? 0.2
+                ? 0.15
                 : 0.025
               : Math.min(0.04, burstGlow * 0.025),
           0.1,
@@ -2153,8 +2305,8 @@ export default function App() {
             decorRing.material.opacity,
             planet.userData.discovered
               ? focused
-                ? 0.28
-                : 0.2
+                ? 0.6
+                : 0.4
               : scopeAmount
                 ? focused
                   ? 0.18
@@ -2209,12 +2361,14 @@ export default function App() {
 
   return (
     <main
-      className={`space-app ${scopeActiveState ? 'is-scoping' : ''} ${ignited ? 'is-lit' : ''} ${
-        sidebarOpen ? 'has-sidebar' : ''
-      }`}
+      className={`space-app ${scopeActiveState ? 'is-scoping' : ''} ${scopeHoldProgress > 0 ? 'is-scope-locking' : ''} ${
+        ignited ? 'is-lit' : ''
+      } ${sidebarOpen ? 'has-sidebar' : ''}`}
       style={{
         '--scope-lock-scale': 1 - scopeProximity * 0.72,
         '--scope-lock-opacity': 0.24 + scopeProximity * 0.76,
+        '--scope-open-progress': scopeHoldProgress,
+        '--scope-progress-color': focusedData?.color ?? '#f2f59f',
       }}
     >
       <div ref={mountRef} className="scene-mount" />
@@ -2225,14 +2379,13 @@ export default function App() {
       </div>
       <div className="vignette" aria-hidden="true" />
 
-      <div ref={cursorRef} className={`reticle ${readSignAvailable && !signPanelOpen ? 'is-reading-sign' : ''}`} aria-hidden="true">
+      <div ref={cursorRef} className={`reticle ${cursorPrompt ? 'is-showing-prompt' : ''}`} aria-hidden="true">
         <span className="reticle-dot" />
-        <span className="reticle-prompt">read sign?</span>
+        <span className="reticle-prompt">{cursorPrompt}</span>
       </div>
 
       <header className="hud-brand">
-        <span>LOGAN ZHAO'S</span>
-        <strong>PORTFOLIO</strong>
+        <span>LOGAN ZHAO'S <strong>PORTFOLIO</strong></span>
       </header>
 
       <button
@@ -2263,6 +2416,7 @@ export default function App() {
       <div className="scope-overlay" aria-hidden="true">
         <div className="scope-ring" />
         <div className="scope-lock-circle" />
+        <div className="scope-completion-band" />
         <div className="scope-crosshair" />
       </div>
 
