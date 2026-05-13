@@ -5,7 +5,7 @@ import phonographBinUrl from './assets/phonograph/scene.bin?url'
 import phonographSceneUrl from './assets/phonograph/scene.gltf?url'
 import phonographTextureUrl from './assets/phonograph/textures/Material_baseColor.png?url'
 
-const PLAYER_RADIUS = 5.4
+const PLAYER_RADIUS = 14.4
 const CAMPFIRE_RADIUS = 1.05
 const EYE_HEIGHT = 1.54
 const UP = new THREE.Vector3(0, 1, 0)
@@ -1319,6 +1319,7 @@ export default function App() {
 
     let recordAudio = null
     let recordObjectUrl = null
+    let recordMaxVolume = DEFAULT_RECORD_TRACKS[0].volume ?? 0.28
     let audioCancelled = false
     let audioUnlockRegistered = false
     const playRecordAudio = () => {
@@ -1336,7 +1337,8 @@ export default function App() {
       recordObjectUrl = track.src ? null : createProceduralRecordUrl(track)
       recordAudio = new Audio(track.src || recordObjectUrl)
       recordAudio.loop = true
-      recordAudio.volume = THREE.MathUtils.clamp(track.volume ?? 0.28, 0, 0.65)
+      recordMaxVolume = THREE.MathUtils.clamp(track.volume ?? 0.28, 0, 0.65)
+      recordAudio.volume = 0
       recordAudio.preload = 'auto'
       recordAudio.play().catch(() => {
         if (audioUnlockRegistered) return
@@ -1898,6 +1900,12 @@ export default function App() {
         recordDisc.rotation.y += dt * 2.85
       }
 
+      if (recordAudio) {
+        const recordDistance = camera.position.distanceTo(recordPlayer.position)
+        const recordVolumeTarget = recordMaxVolume * THREE.MathUtils.clamp(1 - (recordDistance - 1) / 8, 0.1, 1)
+        recordAudio.volume = THREE.MathUtils.lerp(recordAudio.volume, recordVolumeTarget, 0.055)
+      }
+
       musicNoteSprites.forEach((sprite, index) => {
         musicNoteAges[index] += dt
         if (musicNoteAges[index] >= musicNoteLifetimes[index]) {
@@ -1993,6 +2001,9 @@ export default function App() {
       camera.fov = THREE.MathUtils.lerp(camera.fov, scopeActiveRef.current ? 34 : 68, 0.12)
       camera.updateProjectionMatrix()
 
+      stars.position.copy(camera.position)
+      anchorStars.position.copy(camera.position)
+      constellationGroup.position.copy(camera.position)
       stars.rotation.y += dt * 0.006
       anchorStars.rotation.y += dt * 0.004
       constellationGroup.rotation.y += dt * 0.003
