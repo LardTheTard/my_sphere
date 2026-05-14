@@ -525,7 +525,30 @@ canvas {
   gap: 16px;
   max-height: calc(100vh - 242px);
   overflow-y: auto;
-  padding-right: 4px;
+  overscroll-behavior: contain;
+  padding-right: 8px;
+  scrollbar-color: rgba(247, 242, 214, 0.36) rgba(247, 242, 214, 0.08);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.section-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.section-list::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(247, 242, 214, 0.08);
+}
+
+.section-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(247, 242, 214, 0.36);
+}
+
+.section-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(247, 242, 214, 0.52);
 }
 
 .section-group {
@@ -798,6 +821,7 @@ canvas {
 
   .section-list {
     max-height: calc(100vh - 378px);
+    padding-right: 10px;
   }
 
   .section-list button {
