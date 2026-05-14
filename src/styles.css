@@ -522,10 +522,23 @@ canvas {
 
 .section-list {
   display: grid;
-  gap: 10px;
+  gap: 16px;
   max-height: calc(100vh - 242px);
   overflow-y: auto;
   padding-right: 4px;
+}
+
+.section-group {
+  display: grid;
+  gap: 8px;
+}
+
+.section-group-label {
+  margin: 0 0 -2px;
+  color: rgba(247, 242, 214, 0.38);
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 0.58rem;
+  line-height: 1;
 }
 
 .section-list button {

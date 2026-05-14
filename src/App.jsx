@@ -177,6 +177,8 @@ const DISCOVERIES = [
 ]
 
 const DISCOVERY_BY_ID = Object.fromEntries(DISCOVERIES.map((item) => [item.id, item]))
+const EGO_SECTION_TITLES = ['Logan Zhao', 'Education', 'Experience', 'Hobbies']
+const EGO_SECTION_TITLE_SET = new Set(EGO_SECTION_TITLES)
 
 function seededRandom(seed) {
   let value = seed
@@ -568,6 +570,13 @@ function Panel({ discovery, onClose }) {
 }
 
 function PortfolioSidebar({ open, activeId, onSelect, onClose }) {
+  const egoSections = EGO_SECTION_TITLES.map((title) => DISCOVERIES.find((discovery) => discovery.title === title)).filter(Boolean)
+  const projectSections = DISCOVERIES.filter((discovery) => !EGO_SECTION_TITLE_SET.has(discovery.title))
+  const sidebarGroups = [
+    ['Ego System', egoSections],
+    ['Project System', projectSections],
+  ]
+
   return (
     <aside className={`section-sidebar ${open ? 'is-open' : ''}`} aria-hidden={!open}>
       <div className="section-sidebar-header">
@@ -581,18 +590,23 @@ function PortfolioSidebar({ open, activeId, onSelect, onClose }) {
       </div>
 
       <div className="section-list">
-        {DISCOVERIES.map((discovery) => (
-          <button
-            className={activeId === discovery.id ? 'is-active' : ''}
-            type="button"
-            key={discovery.id}
-            onClick={() => onSelect(discovery.id)}
-            style={{ '--accent': discovery.color }}
-          >
-            <span>{discovery.world}</span>
-            <strong>{discovery.title}</strong>
-            <small>{discovery.subtitle}</small>
-          </button>
+        {sidebarGroups.map(([groupName, discoveries]) => (
+          <div className="section-group" key={groupName}>
+            <p className="section-group-label">{groupName}:</p>
+            {discoveries.map((discovery) => (
+              <button
+                className={activeId === discovery.id ? 'is-active' : ''}
+                type="button"
+                key={discovery.id}
+                onClick={() => onSelect(discovery.id)}
+                style={{ '--accent': discovery.color }}
+              >
+                <span>{discovery.world}</span>
+                <strong>{discovery.title}</strong>
+                <small>{discovery.subtitle}</small>
+              </button>
+            ))}
+          </div>
         ))}
       </div>
     </aside>
