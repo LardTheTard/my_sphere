@@ -15,6 +15,7 @@ const SCOPE_IDLE_REMINDER_MS = 30000
 const SIGN_READ_DISTANCE = 6.5
 const PHONOGRAPH_INTERACT_DISTANCE = 6.5
 const SCOPE_AUTO_OPEN_DURATION = 1
+const MUSIC_FADE_SECONDS = 5
 
 const DEFAULT_RECORD_TRACKS = [
   {
@@ -637,6 +638,8 @@ export default function App() {
   const [phonographPromptAvailable, setPhonographPromptAvailableState] = useState(false)
   const phonographPromptAvailableRef = useRef(false)
   const [currentRecordTitle, setCurrentRecordTitle] = useState('')
+  const [audioMuted, setAudioMuted] = useState(false)
+  const audioMutedRef = useRef(false)
 
   const activeData = useMemo(() => DISCOVERY_BY_ID[activeDiscovery] ?? null, [activeDiscovery])
   const focusedData = useMemo(() => DISCOVERY_BY_ID[focusedTarget] ?? null, [focusedTarget])
@@ -658,6 +661,14 @@ export default function App() {
       setControlsVisible(false)
       setScopeUseCount((count) => count + 1)
     }
+  }, [])
+
+  const toggleAudioMuted = useCallback(() => {
+    setAudioMuted((muted) => {
+      const nextMuted = !muted
+      audioMutedRef.current = nextMuted
+      return nextMuted
+    })
   }, [])
 
   const revealDiscovery = useCallback((id) => {
@@ -1370,6 +1381,7 @@ export default function App() {
     let recordAudio = null
     let recordObjectUrl = null
     let recordMaxVolume = DEFAULT_RECORD_TRACKS[0].volume ?? 0.28
+    let recordFadeElapsed = 0
     let audioCancelled = false
     let audioUnlockRegistered = false
     const playRecordAudio = () => {
@@ -1405,7 +1417,6 @@ export default function App() {
 
       const normalizedIndex = ((index % recordTracks.length) + recordTracks.length) % recordTracks.length
       const track = recordTracks[normalizedIndex] ?? DEFAULT_RECORD_TRACKS[0]
-      const previousVolume = recordAudio?.volume ?? 0
 
       if (recordAudio) {
         recordAudio.pause()
@@ -1418,7 +1429,8 @@ export default function App() {
       recordAudio = new Audio(track.src || recordObjectUrl)
       recordAudio.loop = true
       recordMaxVolume = THREE.MathUtils.clamp(track.volume ?? 0.28, 0, 0.65)
-      recordAudio.volume = Math.min(previousVolume, recordMaxVolume)
+      recordFadeElapsed = 0
+      recordAudio.volume = 0
       recordAudio.preload = 'auto'
       recordTrackTitle = track.title ?? DEFAULT_RECORD_TRACKS[0].title
       setCurrentRecordTitle(recordTrackTitle)
@@ -2067,7 +2079,14 @@ export default function App() {
 
       if (recordAudio) {
         const recordDistance = camera.position.distanceTo(recordPlayer.position)
-        const recordVolumeTarget = recordMaxVolume * THREE.MathUtils.clamp(1 - (recordDistance - 1) / 8, 0.1, 1)
+        if (!recordAudio.paused) {
+          recordFadeElapsed = Math.min(MUSIC_FADE_SECONDS, recordFadeElapsed + dt)
+        }
+        const fadeAmount = recordFadeElapsed / MUSIC_FADE_SECONDS
+        const recordVolumeTarget =
+          (audioMutedRef.current ? 0 : recordMaxVolume) *
+          fadeAmount *
+          THREE.MathUtils.clamp(1 - (recordDistance - 1) / 8, 0.1, 1)
         recordAudio.volume = THREE.MathUtils.lerp(recordAudio.volume, recordVolumeTarget, 0.055)
       }
 
@@ -2425,6 +2444,21 @@ export default function App() {
         onTouchEnd={() => setScopeActive(false)}
       >
         SCOPE
+      </button>
+
+      <button
+        className="audio-button"
+        type="button"
+        aria-pressed={audioMuted}
+        aria-label={audioMuted ? 'Unmute music' : 'Mute music'}
+        onClick={toggleAudioMuted}
+      >
+        <span className="sound-icon" aria-hidden="true">
+          <span className="sound-icon-speaker" />
+          <span className="sound-icon-wave sound-icon-wave-one" />
+          <span className="sound-icon-wave sound-icon-wave-two" />
+          <span className="sound-icon-slash" />
+        </span>
       </button>
 
       <div className="scope-overlay" aria-hidden="true">
