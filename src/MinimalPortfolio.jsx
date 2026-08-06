@@ -5,20 +5,33 @@ const projects = [
   {
     title: 'Reminiscence',
     detail: 'iPhone video to VR-ready Gaussian splats in under two minutes.',
-    stack: 'PyTorch · Swift · Unity · FastAPI',
+    stack: 'PYTORCH / SWIFT / UNITY / FASTAPI',
     href: 'https://github.com/LargoLardo/reminiscence',
   },
   {
     title: "Hold’em AI",
     detail: 'An MCCFR poker solver that learned to beat heuristic agents.',
-    stack: 'NumPy · React · Flask',
+    stack: 'NUMPY / REACT / FLASK',
     href: 'https://github.com/LargoLardo/lard_plays_poker',
   },
   {
     title: 'Chess Engine',
     detail: 'A policy/value network paired with MCTS, trained through self-play.',
-    stack: 'PyTorch · MCTS · Vite',
+    stack: 'PYTORCH / MCTS / VITE',
     href: 'https://github.com/LargoLardo/lard_plays_chess',
+  },
+]
+
+const experience = [
+  {
+    title: 'Application Programmer, Ontario Government',
+    date: 'CURRENT',
+    detail: 'Automated QA for 1,000+ Cognos BI reports per hour and built data workflows across Redshift, AWS Lambda, and Python.',
+  },
+  {
+    title: 'Organizer, NRGHacks',
+    date: '200+ ATTENDEES',
+    detail: 'Helped lead a student hackathon and a 50+ member coding club, turning technical curiosity into shared projects.',
   },
 ]
 
@@ -38,11 +51,11 @@ function LifeCanvas({ running, reset, boardRef }) {
     let lastStep = 0
 
     const resize = () => {
-      const cellSize = innerWidth < 700 ? 15 : 18
+      const cellSize = innerWidth < 700 ? 17 : 22
       const columns = Math.ceil(innerWidth / cellSize)
       const rows = Math.ceil(innerHeight / cellSize)
       const cells = new Uint8Array(columns * rows)
-      for (let i = 0; i < cells.length; i += 1) cells[i] = Math.random() < 0.17 ? 1 : 0
+      for (let i = 0; i < cells.length; i += 1) cells[i] = Math.random() < 0.14 ? 1 : 0
       boardRef.current = { cells, columns, rows, cellSize }
       canvas.width = innerWidth * devicePixelRatio
       canvas.height = innerHeight * devicePixelRatio
@@ -54,12 +67,12 @@ function LifeCanvas({ running, reset, boardRef }) {
     const draw = (time = 0) => {
       const state = boardRef.current
       if (!state) return
-      if (runningRef.current && time - lastStep > 120) {
+      if (runningRef.current && time - lastStep > 460) {
         state.cells = nextGeneration(state.cells, state.columns, state.rows)
         lastStep = time
       }
       context.clearRect(0, 0, innerWidth, innerHeight)
-      context.fillStyle = '#b8f1dc'
+      context.fillStyle = '#26382f'
       for (let i = 0; i < state.cells.length; i += 1) {
         if (!state.cells[i]) continue
         const x = (i % state.columns) * state.cellSize
@@ -121,33 +134,58 @@ export default function MinimalPortfolio() {
       </a>
 
       <section className="portfolio-card">
-        <p className="eyebrow">Logan Zhao · Toronto / Waterloo</p>
-        <h1>I build intelligent<br />things that feel <em>alive.</em></h1>
-        <p className="intro">
-          Systems Design Engineering student working across machine learning,
-          creative tools, and interactive systems.
-        </p>
+        <header>
+          <h1>Logan Zhao</h1>
+          <p className="intro">Building intelligent systems that feel alive.</p>
+          <nav className="top-links" aria-label="Contact links">
+            <a href="mailto:logan.zhao@uwaterloo.ca">EMAIL</a>
+            <a href="https://github.com/LargoLardo" target="_blank" rel="noreferrer">GITHUB</a>
+            <a href="https://www.linkedin.com/in/logan-zhao-328653232" target="_blank" rel="noreferrer">LINKEDIN</a>
+          </nav>
+        </header>
 
-        <div className="project-list" aria-label="Selected projects">
-          {projects.map((project, index) => (
-            <a key={project.title} href={project.href} target="_blank" rel="noreferrer" className="project">
-              <span className="project-number">0{index + 1}</span>
-              <span>
-                <strong>{project.title}</strong>
-                <small>{project.detail}</small>
-                <small className="stack">{project.stack}</small>
-              </span>
-              <span aria-hidden="true">↗</span>
-            </a>
-          ))}
+        <div className="section-row">
+          <h2>ABOUT</h2>
+          <p className="about-copy">
+            Systems Design Engineering student at the University of Waterloo,
+            working across machine learning, creative tools, and interactive systems.
+          </p>
         </div>
 
-        <footer>
-          <a href="mailto:logan.zhao@uwaterloo.ca">Email</a>
-          <a href="https://github.com/LargoLardo" target="_blank" rel="noreferrer">GitHub</a>
-          <a href="https://www.linkedin.com/in/logan-zhao-328653232" target="_blank" rel="noreferrer">LinkedIn</a>
-          <span>Plant cells anywhere outside this panel.</span>
-        </footer>
+        <div className="section-row">
+          <h2>EXPERIENCE</h2>
+          <div className="entries">
+            {experience.map((item) => (
+              <article className="entry" key={item.title}>
+                <div className="entry-heading"><h3>{item.title}</h3><time>{item.date}</time></div>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="section-row">
+          <h2>PROJECTS</h2>
+          <div className="entries">
+            {projects.map((project) => (
+              <a key={project.title} href={project.href} target="_blank" rel="noreferrer" className="entry project">
+                <div className="entry-heading"><h3>{project.title}</h3><span aria-hidden="true">↗</span></div>
+                <p>{project.detail}</p>
+                <small>{project.stack}</small>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="section-row">
+          <h2>EDUCATION</h2>
+          <div className="entries">
+            <article className="entry">
+              <div className="entry-heading"><h3>Systems Design Engineering, Waterloo</h3><time>2030</time></div>
+              <p>B.A.Sc. candidate · 3.9 GPA · President’s Scholarship of Distinction.</p>
+            </article>
+          </div>
+        </div>
       </section>
 
       <div className="life-controls" aria-label="Game of Life controls">
