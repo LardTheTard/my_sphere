@@ -308,7 +308,7 @@ canvas {
 .portfolio-card {
   position: relative;
   z-index: 2;
-  zoom: 0.85;
+  zoom: 0.67;
   width: min(1120px, calc(100% - 48px));
   margin: clamp(88px, 12vh, 150px) auto 260px;
   padding: 28px 0 180px;
