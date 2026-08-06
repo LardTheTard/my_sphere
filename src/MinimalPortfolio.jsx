@@ -130,6 +130,7 @@ export default function MinimalPortfolio() {
   useEffect(() => {
     const page = pageRef.current
     const card = cardRef.current
+    const layers = card.querySelectorAll('[data-scroll-layer]')
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
     let previous = page.scrollTop
     let settleTimer
@@ -137,9 +138,10 @@ export default function MinimalPortfolio() {
     const addMomentum = () => {
       const current = page.scrollTop
       if (!reducedMotion) {
-        card.style.setProperty('--scroll-lag', `${scrollLag(current - previous)}px`)
+        const lag = scrollLag(current - previous)
+        layers.forEach((layer, index) => layer.style.setProperty('--drag-y', `${lag * (0.8 + index * 0.5)}px`))
         clearTimeout(settleTimer)
-        settleTimer = setTimeout(() => card.style.setProperty('--scroll-lag', '0px'), 55)
+        settleTimer = setTimeout(() => layers.forEach((layer) => layer.style.setProperty('--drag-y', '0px')), 90)
       }
       previous = current
     }
@@ -157,7 +159,7 @@ export default function MinimalPortfolio() {
       <div className="life-shade" />
 
       <section className="portfolio-card" ref={cardRef}>
-        <header>
+        <header data-scroll-layer>
           <div className="title-row">
             <h1>Logan Zhao</h1>
             <a className="saturn-link" href="/current" aria-label="Enter Logan's immersive space portfolio">
@@ -174,17 +176,17 @@ export default function MinimalPortfolio() {
           </nav>
         </header>
 
-        <div className="section-row">
+        <div className="section-row" data-scroll-layer>
           <h2>ABOUT</h2>
           <p className="about-copy">
             Systems Design Engineering student <a className="waterloo-inline" href="https://uwaterloo.ca/future-students/programs/systems-design-engineering">@
-              <img className="waterloo-crest" src="/university-of-waterloo-1-logo-png-transparent.png" alt="" />
+              <img className="waterloo-crest" src="/uwaterloo-crest-cropped.png" alt="" />
               <span className="waterloo-wordmark">uwaterloo</span>
             </a>, working across machine learning, creative tools, and interactive systems.
           </p>
         </div>
 
-        <div className="section-row">
+        <div className="section-row" data-scroll-layer>
           <h2>EXPERIENCE</h2>
           <div className="entries">
             {experience.map((item) => (
@@ -196,7 +198,7 @@ export default function MinimalPortfolio() {
           </div>
         </div>
 
-        <div className="section-row">
+        <div className="section-row" data-scroll-layer>
           <h2>PROJECTS</h2>
           <div className="entries">
             {projects.map((project, index) => (
@@ -212,7 +214,7 @@ export default function MinimalPortfolio() {
           </div>
         </div>
 
-        <div className="section-row">
+        <div className="section-row" data-scroll-layer>
           <h2>EDUCATION</h2>
           <div className="entries">
             <article className="entry">
