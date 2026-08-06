@@ -250,7 +250,7 @@ export default function MinimalPortfolio() {
           title={running ? 'Pause Game of Life' : 'Play Game of Life'}
           onClick={() => setRunning((value) => !value)}
         >
-          <span aria-hidden="true">{running ? 'Ⅱ' : '▶'}</span>
+          <span className={`life-toggle-icon ${running ? 'is-pause' : 'is-play'}`} aria-hidden="true" />
         </button>
       </div>
     </main>

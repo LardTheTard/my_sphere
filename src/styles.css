@@ -616,20 +616,45 @@ canvas {
 .life-controls { right: 28px; bottom: 24px; gap: 7px; }
 .life-controls button {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   place-items: center;
-  border-color: #343a37;
-  border-radius: 2px;
-  background: rgba(8, 9, 9, 0.82);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: #858b89;
-  font-size: 23px;
-  font-weight: 400;
-  letter-spacing: 0.08em;
+  filter: drop-shadow(2px 2px 0 #080909);
 }
+
+.life-toggle-icon {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 20px;
+}
+
+.life-toggle-icon.is-pause::before,
+.life-toggle-icon.is-pause::after {
+  position: absolute;
+  top: 1px;
+  width: 6px;
+  height: 18px;
+  background: currentColor;
+  content: "";
+}
+
+.life-toggle-icon.is-pause::before { left: 1px; }
+.life-toggle-icon.is-pause::after { right: 1px; }
+
+.life-toggle-icon.is-play {
+  background: currentColor;
+  clip-path: polygon(0 0, 34% 0, 34% 15%, 56% 15%, 56% 30%, 78% 30%, 78% 42%, 100% 42%, 100% 58%, 78% 58%, 78% 70%, 56% 70%, 56% 85%, 34% 85%, 34% 100%, 0 100%);
+}
+
 .life-controls button:hover,
-.life-controls button:focus-visible { border-color: #75857e; background: rgba(8, 9, 9, 0.9); color: #e8fff6; }
+.life-controls button:focus-visible { background: transparent; color: #e8fff6; }
+.life-controls button:focus-visible { outline: 2px dashed #75857e; outline-offset: 2px; }
 
 @keyframes saturn-float {
   0%, 100% { transform: translateY(0) rotate(-2deg); }
