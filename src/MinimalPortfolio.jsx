@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { nextGeneration } from './life.js'
+import { nextGeneration, scrollLag } from './life.js'
 
 const projects = [
   {
@@ -124,13 +124,39 @@ export default function MinimalPortfolio() {
   const [running, setRunning] = useState(true)
   const [reset, setReset] = useState(0)
   const boardRef = useRef(null)
+  const pageRef = useRef(null)
+  const cardRef = useRef(null)
+
+  useEffect(() => {
+    const page = pageRef.current
+    const card = cardRef.current
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
+    let previous = page.scrollTop
+    let settleTimer
+
+    const addMomentum = () => {
+      const current = page.scrollTop
+      if (!reducedMotion) {
+        card.style.setProperty('--scroll-lag', `${scrollLag(current - previous)}px`)
+        clearTimeout(settleTimer)
+        settleTimer = setTimeout(() => card.style.setProperty('--scroll-lag', '0px'), 55)
+      }
+      previous = current
+    }
+
+    page.addEventListener('scroll', addMomentum, { passive: true })
+    return () => {
+      page.removeEventListener('scroll', addMomentum)
+      clearTimeout(settleTimer)
+    }
+  }, [])
 
   return (
-    <main className="minimal-portfolio">
+    <main className="minimal-portfolio" ref={pageRef}>
       <LifeCanvas running={running} reset={reset} boardRef={boardRef} />
       <div className="life-shade" />
 
-      <section className="portfolio-card">
+      <section className="portfolio-card" ref={cardRef}>
         <header>
           <div className="title-row">
             <h1>Logan Zhao</h1>
@@ -151,10 +177,10 @@ export default function MinimalPortfolio() {
         <div className="section-row">
           <h2>ABOUT</h2>
           <p className="about-copy">
-            Systems Design Engineering student <span className="waterloo-inline">@
-              <span className="waterloo-crest" aria-hidden="true">W</span>
+            Systems Design Engineering student <a className="waterloo-inline" href="https://uwaterloo.ca/future-students/programs/systems-design-engineering">@
+              <img className="waterloo-crest" src="/university-of-waterloo-1-logo-png-transparent.png" alt="" />
               <span className="waterloo-wordmark">uwaterloo</span>
-            </span>, working across machine learning, creative tools, and interactive systems.
+            </a>, working across machine learning, creative tools, and interactive systems.
           </p>
         </div>
 
