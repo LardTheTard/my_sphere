@@ -308,6 +308,7 @@ canvas {
 .portfolio-card {
   position: relative;
   z-index: 2;
+  zoom: 0.85;
   width: min(1120px, calc(100% - 48px));
   margin: clamp(88px, 12vh, 150px) auto 260px;
   padding: 28px 0 180px;
@@ -679,6 +680,7 @@ canvas {
 
 @media (max-width: 720px) {
   .portfolio-card {
+    zoom: 1;
     width: calc(100% - 32px);
     margin: 92px 16px 180px;
     padding: 12px 0 160px;
