@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { nextGeneration, scrollLag } from './life.js'
+import { damp, nextGeneration } from './life.js'
 
 const projects = [
   {
@@ -132,24 +132,33 @@ export default function MinimalPortfolio() {
     const card = cardRef.current
     const layers = card.querySelectorAll('[data-scroll-layer]')
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
-    let previous = page.scrollTop
-    let settleTimer
+    let target = page.scrollTop
+    let positions = Array.from(layers, () => target)
+    let frame
 
-    const addMomentum = () => {
-      const current = page.scrollTop
-      if (!reducedMotion) {
-        const lag = scrollLag(current - previous)
-        layers.forEach((layer, index) => layer.style.setProperty('--drag-y', `${lag * (0.8 + index * 0.5)}px`))
-        clearTimeout(settleTimer)
-        settleTimer = setTimeout(() => layers.forEach((layer) => layer.style.setProperty('--drag-y', '0px')), 90)
-      }
-      previous = current
+    const animate = () => {
+      let moving = false
+      positions = positions.map((position, index) => {
+        const next = damp(position, target, 0.28 - index * 0.035)
+        const inertia = Math.max(-80, Math.min(80, target - next))
+        const parallax = Math.min(140, target * index * 0.025)
+        layers[index].style.setProperty('--drag-y', `${parallax + inertia}px`)
+        if (Math.abs(target - next) > 0.1) moving = true
+        return next
+      })
+      frame = moving ? requestAnimationFrame(animate) : 0
     }
 
+    const addMomentum = () => {
+      target = page.scrollTop
+      if (!reducedMotion && !frame) frame = requestAnimationFrame(animate)
+    }
+
+    if (!reducedMotion) frame = requestAnimationFrame(animate)
     page.addEventListener('scroll', addMomentum, { passive: true })
     return () => {
       page.removeEventListener('scroll', addMomentum)
-      clearTimeout(settleTimer)
+      cancelAnimationFrame(frame)
     }
   }, [])
 

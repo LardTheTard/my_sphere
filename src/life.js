@@ -17,12 +17,12 @@ export function nextGeneration(cells, columns, rows) {
   return next
 }
 
-export const scrollLag = (delta) => Math.max(-28, Math.min(28, delta * 0.36))
+export const damp = (current, target, amount) => current + (target - current) * amount
 
 if (globalThis.process?.argv[1]?.endsWith('life.js')) {
   const blinker = new Uint8Array(25)
   blinker.set([1, 1, 1], 11)
   const result = nextGeneration(blinker, 5, 5)
   console.assert(result[7] && result[12] && result[17] && result.reduce((sum, cell) => sum + cell, 0) === 3)
-  console.assert(scrollLag(100) === 28 && scrollLag(-100) === -28)
+  console.assert(damp(0, 100, 0.2) === 20)
 }
