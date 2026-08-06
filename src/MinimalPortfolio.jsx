@@ -130,15 +130,16 @@ export default function MinimalPortfolio() {
       <LifeCanvas running={running} reset={reset} boardRef={boardRef} />
       <div className="life-shade" />
 
-      <a className="saturn-link" href="/current" aria-label="Enter Logan's immersive space portfolio">
-        <span className="saturn-ring" />
-        <span className="saturn-planet" />
-        <span className="saturn-label">enter orbit</span>
-      </a>
-
       <section className="portfolio-card">
         <header>
-          <h1>Logan Zhao</h1>
+          <div className="title-row">
+            <h1>Logan Zhao</h1>
+            <a className="saturn-link" href="/current" aria-label="Enter Logan's immersive space portfolio">
+              <span className="saturn-ring" />
+              <span className="saturn-planet" />
+              <span className="saturn-label">enter orbit</span>
+            </a>
+          </div>
           <p className="intro">Building intelligent systems that feel alive.</p>
           <nav className="top-links" aria-label="Contact links">
             <a href="mailto:logan.zhao@uwaterloo.ca">EMAIL</a>
@@ -150,8 +151,10 @@ export default function MinimalPortfolio() {
         <div className="section-row">
           <h2>ABOUT</h2>
           <p className="about-copy">
-            Systems Design Engineering student at the University of Waterloo,
-            working across machine learning, creative tools, and interactive systems.
+            Systems Design Engineering student <span className="waterloo-inline">@
+              <span className="waterloo-crest" aria-hidden="true">W</span>
+              <span className="waterloo-wordmark">uwaterloo</span>
+            </span>, working across machine learning, creative tools, and interactive systems.
           </p>
         </div>
 

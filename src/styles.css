@@ -321,6 +321,13 @@ canvas {
 
 .portfolio-card header { margin-bottom: 76px; }
 
+.title-row {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .portfolio-card h1 {
   max-width: none;
   margin: 0;
@@ -389,6 +396,31 @@ canvas {
   color: #e1e3e1;
   font-size: clamp(18px, 2vw, 21px);
   line-height: 1.65;
+}
+
+.waterloo-inline {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.waterloo-crest {
+  display: inline-grid;
+  width: 24px;
+  height: 28px;
+  place-items: center;
+  clip-path: polygon(8% 0, 92% 0, 92% 70%, 50% 100%, 8% 70%);
+  background: linear-gradient(90deg, #e4b52f 0 32%, #b9232a 32% 66%, #e4b52f 66%);
+  color: #090a09;
+  font: 700 14px/1 'Pixelify Sans', monospace;
+  text-shadow: 1px 0 #fff;
+}
+
+.waterloo-wordmark {
+  border-bottom: 2px solid currentColor;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .entries { display: grid; gap: 50px; margin: 42px 0 0 30px; }
@@ -475,57 +507,62 @@ canvas {
 }
 
 .saturn-link {
-  top: 22px;
-  right: 26px;
+  position: relative;
+  top: auto;
+  right: auto;
+  flex: 0 0 104px;
   width: 104px;
   height: 104px;
   color: #aab4af;
-  animation: saturn-float 6s ease-in-out infinite;
-  perspective: 180px;
+  animation: pixel-saturn-float 2.8s steps(4, end) infinite;
 }
 
 .saturn-link::before {
   position: absolute;
   width: 54px;
   height: 54px;
-  border-radius: 50%;
-  background: rgba(184, 241, 220, 0.09);
-  box-shadow: 0 0 32px 12px rgba(184, 241, 220, 0.08);
+  border-radius: 0;
+  background: rgba(184, 241, 220, 0.06);
+  box-shadow: 0 0 0 4px rgba(184, 241, 220, 0.025), 0 0 0 8px rgba(184, 241, 220, 0.015);
   content: "";
-  animation: saturn-pulse 3s ease-in-out infinite;
+  clip-path: polygon(25% 0, 75% 0, 75% 12%, 88% 12%, 88% 25%, 100% 25%, 100% 75%, 88% 75%, 88% 88%, 75% 88%, 75% 100%, 25% 100%, 25% 88%, 12% 88%, 12% 75%, 0 75%, 0 25%, 12% 25%, 12% 12%, 25% 12%);
+  animation: pixel-saturn-pulse 2s steps(2, end) infinite;
 }
 
 .saturn-link::after {
   position: absolute;
   width: 2px;
   height: 2px;
-  border-radius: 50%;
+  border-radius: 0;
   background: #d9eee5;
   box-shadow: -34px 12px #80958c, 38px -20px #80958c, 28px 26px #d9eee5;
   content: "";
-  animation: saturn-stars 4s ease-in-out infinite;
+  animation: pixel-saturn-stars 3s steps(3, end) infinite;
 }
 
 .saturn-planet {
   z-index: 2;
-  width: 38px;
-  height: 38px;
-  border: 1px solid rgba(255, 235, 188, 0.55);
-  background: linear-gradient(165deg, transparent 0 31%, rgba(119, 78, 50, 0.42) 32% 39%, transparent 40% 55%, rgba(255, 224, 164, 0.32) 56% 62%, transparent 63%), radial-gradient(circle at 32% 28%, #ffe4a4, #c78658 56%, #5f4037 100%);
-  box-shadow: inset -7px -5px 10px rgba(32, 17, 15, 0.55), 0 0 16px rgba(240, 200, 121, 0.18);
-  animation: saturn-spin 7s linear infinite;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(#ffd68b 0 24%, #c98550 24% 38%, #efb865 38% 60%, #8f593f 60% 75%, #d89355 75%);
+  box-shadow: inset -6px 0 #6f493b, inset 6px 0 #ffe2a3;
+  clip-path: polygon(25% 0, 75% 0, 75% 8%, 88% 8%, 88% 25%, 100% 25%, 100% 75%, 88% 75%, 88% 88%, 75% 88%, 75% 100%, 25% 100%, 25% 88%, 12% 88%, 12% 75%, 0 75%, 0 25%, 12% 25%, 12% 8%, 25% 8%);
+  animation: pixel-saturn-shade 1.8s steps(4, end) infinite;
 }
 
 .saturn-ring {
   z-index: 1;
-  width: 70px;
-  height: 27px;
-  border-width: 3px;
-  border-color: rgba(231, 213, 166, 0.82);
-  border-right-color: rgba(151, 119, 80, 0.52);
-  border-left-color: rgba(255, 237, 193, 0.92);
-  box-shadow: 0 0 8px rgba(240, 200, 121, 0.12);
-  animation: saturn-orbit 9s linear infinite;
+  z-index: 3;
+  width: 78px;
+  height: 30px;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(90deg, #83664b, #f5d99a 26% 70%, #8c6c4c);
+  clip-path: polygon(0 40%, 12% 40%, 12% 24%, 88% 24%, 88% 40%, 100% 40%, 100% 60%, 88% 60%, 88% 76%, 12% 76%, 12% 60%, 0 60%);
+  box-shadow: none;
+  animation: pixel-saturn-ring 1.6s steps(4, end) infinite;
 }
 
 .saturn-label {
@@ -539,8 +576,8 @@ canvas {
 
 .saturn-link:hover,
 .saturn-link:focus-visible { color: #e8fff6; outline: none; }
-.saturn-link:hover .saturn-ring { animation-duration: 2.4s; }
-.saturn-link:hover .saturn-planet { animation-duration: 2s; }
+.saturn-link:hover .saturn-ring { animation-duration: 0.6s; }
+.saturn-link:hover .saturn-planet { animation-duration: 0.7s; }
 
 .life-controls { right: 28px; bottom: 24px; gap: 7px; }
 .life-controls button {
@@ -568,6 +605,15 @@ canvas {
 @keyframes saturn-pulse { 50% { opacity: 0.45; transform: scale(1.25); } }
 @keyframes saturn-stars { 50% { opacity: 0.25; transform: rotate(12deg); } }
 
+@keyframes pixel-saturn-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+@keyframes pixel-saturn-pulse { 50% { opacity: 0.35; transform: scale(1.15); } }
+@keyframes pixel-saturn-stars { 50% { opacity: 0.2; transform: translate(4px, -4px); } }
+@keyframes pixel-saturn-shade { 50% { filter: brightness(1.16); transform: translateX(2px); } }
+@keyframes pixel-saturn-ring { 50% { transform: translateX(3px) rotate(-4deg); } }
+
 @media (max-width: 720px) {
   .portfolio-card {
     width: calc(100% - 48px);
@@ -579,7 +625,8 @@ canvas {
   .section-row { grid-template-columns: 1fr; gap: 24px; margin-top: 58px; }
   .section-row h2 { padding-bottom: 0; border-bottom: 0; }
   .entry-heading { align-items: flex-start; }
-  .saturn-link { top: 4px; right: 6px; transform: scale(0.82); }
+  .title-row { align-items: flex-start; }
+  .saturn-link { flex-basis: 76px; width: 76px; height: 90px; transform: scale(0.82); transform-origin: top right; }
   .life-controls { right: 12px; bottom: 12px; }
 }
 
