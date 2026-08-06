@@ -440,6 +440,26 @@ canvas {
   text-decoration: none;
 }
 
+.job-entry {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.company-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.job-title > span {
+  display: block;
+  margin-top: 2px;
+  color: #8d9290;
+  font-size: 20px;
+}
+
 .entry-heading {
   display: flex;
   gap: 24px;
@@ -638,6 +658,8 @@ canvas {
   .section-row { grid-template-columns: 1fr; gap: 24px; margin-top: 58px; }
   .section-row h2 { padding-bottom: 0; border-bottom: 0; }
   .entry-heading { align-items: flex-start; }
+  .job-entry { grid-template-columns: 48px 1fr; gap: 14px; }
+  .company-logo { width: 48px; height: 48px; }
   .title-row { align-items: flex-start; }
   .saturn-link { flex-basis: 76px; width: 76px; height: 90px; transform: scale(0.82); transform-origin: top right; }
   .life-controls { right: 12px; bottom: 12px; }

@@ -27,15 +27,19 @@ const projects = [
 
 const experience = [
   {
-    title: 'Application Programmer, Ontario Government',
-    date: 'CURRENT',
-    detail: 'Automated QA for 1,000+ Cognos BI reports per hour and built data workflows across Redshift, AWS Lambda, and Python.',
+    title: 'Software Engineer',
+    date: 'September 2026 — December 2026',
+    detail: 'Incoming F26.',
+    logo: '/shopify-cropped.png',
+    company: 'Shopify',
   },
   {
-    title: 'Organizer, NRGHacks',
-    date: '200+ ATTENDEES',
-    detail: 'Helped lead a student hackathon and a 50+ member coding club, turning technical curiosity into shared projects.',
-  },
+    title: 'Application Programmer',
+    date: 'January 2026 — May 2026',
+    detail: 'Automated QA for 1,000+ Cognos BI reports per hour and built data workflows across Redshift, AWS Lambda, and Python.',
+    logo: '/govicon-cropped.png',
+    company: 'Ontario Government',
+  }
 ]
 
 function LifeCanvas({ running, boardRef }) {
@@ -198,9 +202,15 @@ export default function MinimalPortfolio() {
           <h2>EXPERIENCE</h2>
           <div className="entries">
             {experience.map((item) => (
-              <article className="entry" key={item.title}>
-                <div className="entry-heading"><h3>{item.title}</h3><time>{item.date}</time></div>
-                <p>{item.detail}</p>
+              <article className="entry job-entry" key={item.title}>
+                <img className="company-logo" src={item.logo} alt={`${item.company} logo`} />
+                <div>
+                  <div className="entry-heading">
+                    <div className="job-title"><h3>{item.title}</h3><span>{item.company}</span></div>
+                    <time>{item.date}</time>
+                  </div>
+                  <p>{item.detail}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -226,7 +236,7 @@ export default function MinimalPortfolio() {
           <h2>EDUCATION</h2>
           <div className="entries">
             <article className="entry">
-              <div className="entry-heading"><h3>Systems Design Engineering, Waterloo</h3><time>2030</time></div>
+              <div className="entry-heading"><h3>Systems Design Engineering, Waterloo</h3></div>
               <p>B.A.Sc. candidate · 3.9 GPA · President’s Scholarship of Distinction.</p>
             </article>
           </div>
