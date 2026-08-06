@@ -635,18 +635,23 @@ canvas {
   height: 20px;
 }
 
+.life-toggle-icon.is-pause {
+  width: 26px;
+  height: 28px;
+}
+
 .life-toggle-icon.is-pause::before,
 .life-toggle-icon.is-pause::after {
   position: absolute;
-  top: 1px;
-  width: 6px;
-  height: 18px;
+  top: 0;
+  width: 8px;
+  height: 28px;
   background: currentColor;
   content: "";
 }
 
-.life-toggle-icon.is-pause::before { left: 1px; }
-.life-toggle-icon.is-pause::after { right: 1px; }
+.life-toggle-icon.is-pause::before { left: 2px; }
+.life-toggle-icon.is-pause::after { right: 2px; }
 
 .life-toggle-icon.is-play {
   background: currentColor;
