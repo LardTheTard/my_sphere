@@ -38,7 +38,7 @@ const experience = [
   },
 ]
 
-function LifeCanvas({ running, reset, boardRef }) {
+function LifeCanvas({ running, boardRef }) {
   const canvasRef = useRef(null)
   const drawingRef = useRef(false)
   const runningRef = useRef(running)
@@ -70,7 +70,7 @@ function LifeCanvas({ running, reset, boardRef }) {
     const draw = (time = 0) => {
       const state = boardRef.current
       if (!state) return
-      if (runningRef.current && time - lastStep > 460) {
+      if (runningRef.current && time - lastStep > 130) {
         state.cells = nextGeneration(state.cells, state.columns, state.rows)
         lastStep = time
       }
@@ -92,7 +92,7 @@ function LifeCanvas({ running, reset, boardRef }) {
       cancelAnimationFrame(frame)
       removeEventListener('resize', resize)
     }
-  }, [reset, boardRef])
+  }, [boardRef])
 
   const paint = (event) => {
     if (!drawingRef.current && event.type !== 'pointerdown') return
@@ -122,7 +122,6 @@ function LifeCanvas({ running, reset, boardRef }) {
 
 export default function MinimalPortfolio() {
   const [running, setRunning] = useState(true)
-  const [reset, setReset] = useState(0)
   const boardRef = useRef(null)
   const pageRef = useRef(null)
   const cardRef = useRef(null)
@@ -140,8 +139,8 @@ export default function MinimalPortfolio() {
       let moving = false
       positions = positions.map((position, index) => {
         const next = damp(position, target, 0.28 - index * 0.035)
-        const inertia = Math.max(-80, Math.min(80, target - next))
-        const parallax = Math.min(140, target * index * 0.025)
+        const inertia = Math.max(-140, Math.min(140, target - next))
+        const parallax = Math.min(180, target * index * 0.03)
         layers[index].style.setProperty('--drag-y', `${parallax + inertia}px`)
         if (Math.abs(target - next) > 0.1) moving = true
         return next
@@ -164,7 +163,7 @@ export default function MinimalPortfolio() {
 
   return (
     <main className="minimal-portfolio" ref={pageRef}>
-      <LifeCanvas running={running} reset={reset} boardRef={boardRef} />
+      <LifeCanvas running={running} boardRef={boardRef} />
       <div className="life-shade" />
 
       <section className="portfolio-card" ref={cardRef}>
@@ -177,7 +176,7 @@ export default function MinimalPortfolio() {
               <span className="saturn-label">enter orbit</span>
             </a>
           </div>
-          <p className="intro">Building intelligent systems that feel alive.</p>
+          <p className="intro">One of the builders of all time for sure.</p>
           <nav className="top-links" aria-label="Contact links">
             <a href="mailto:logan.zhao@uwaterloo.ca">EMAIL</a>
             <a href="https://github.com/LargoLardo" target="_blank" rel="noreferrer">GITHUB</a>
@@ -235,9 +234,14 @@ export default function MinimalPortfolio() {
       </section>
 
       <div className="life-controls" aria-label="Game of Life controls">
-        <button type="button" onClick={() => setRunning((value) => !value)}>{running ? 'Pause' : 'Play'}</button>
-        <button type="button" onClick={() => setReset((value) => value + 1)}>Randomize</button>
-        <button type="button" onClick={() => boardRef.current?.cells.fill(0)}>Clear</button>
+        <button
+          type="button"
+          aria-label={running ? 'Pause Game of Life' : 'Play Game of Life'}
+          title={running ? 'Pause Game of Life' : 'Play Game of Life'}
+          onClick={() => setRunning((value) => !value)}
+        >
+          <span aria-hidden="true">{running ? 'Ⅱ' : '▶'}</span>
+        </button>
       </div>
     </main>
   )

@@ -308,9 +308,9 @@ canvas {
 .portfolio-card {
   position: relative;
   z-index: 2;
-  width: min(1040px, calc(100% - 64px));
-  margin: clamp(88px, 12vh, 150px) auto 120px;
-  padding: 28px 0;
+  width: min(1120px, calc(100% - 48px));
+  margin: clamp(88px, 12vh, 150px) auto 260px;
+  padding: 28px 0 180px;
   border: 0;
   background: rgba(8, 9, 9, 0.8);
   color: #f2f0ec;
@@ -337,7 +337,7 @@ canvas {
   max-width: none;
   margin: 0;
   font-family: 'Jersey 10', Impact, sans-serif;
-  font-size: clamp(7rem, 16vw, 12.5rem);
+  font-size: clamp(calc(7rem + 3px), calc(16vw + 3px), calc(12.5rem + 3px));
   font-weight: 400;
   line-height: 0.74;
   letter-spacing: 0.025em;
@@ -349,7 +349,7 @@ canvas {
   max-width: none;
   margin: 20px 0 32px;
   color: #8d9290;
-  font-size: clamp(22px, 2.2vw, 26px);
+  font-size: clamp(25px, calc(2.2vw + 3px), 29px);
   line-height: 1.5;
 }
 
@@ -362,7 +362,7 @@ canvas {
 .top-links a {
   border-bottom: 1px solid #2c302f;
   color: #a4aaa7;
-  font: 17px/1.8 'Pixelify Sans', ui-monospace, monospace;
+  font: 20px/1.8 'Pixelify Sans', ui-monospace, monospace;
   letter-spacing: 0.18em;
   text-decoration: none;
 }
@@ -385,7 +385,7 @@ canvas {
   align-items: center;
   margin: 0;
   color: #858b89;
-  font: 500 21px/1.4 'Pixelify Sans', ui-monospace, monospace;
+  font: 500 24px/1.4 'Pixelify Sans', ui-monospace, monospace;
   letter-spacing: 0.2em;
 }
 
@@ -399,7 +399,7 @@ canvas {
 .about-copy {
   margin: 42px 0 0 30px;
   color: #e1e3e1;
-  font-size: clamp(21px, 2.1vw, 24px);
+  font-size: clamp(24px, calc(2.1vw + 3px), 27px);
   line-height: 1.65;
 }
 
@@ -450,7 +450,7 @@ canvas {
 .entry h3 {
   margin: 0;
   color: #f0f1ef;
-  font-size: clamp(21px, 2.1vw, 24px);
+  font-size: clamp(24px, calc(2.1vw + 3px), 27px);
   font-weight: 600;
   line-height: 1.4;
   transition: color 160ms ease, transform 160ms ease;
@@ -460,13 +460,13 @@ canvas {
 .entry-heading > span {
   flex: 0 0 auto;
   color: #858b89;
-  font: italic 17px/1.2 'Pixelify Sans', ui-monospace, monospace;
+  font: italic 20px/1.2 'Pixelify Sans', ui-monospace, monospace;
 }
 
 .entry p {
   margin: 10px 0 0;
   color: #8d9290;
-  font-size: 21px;
+  font-size: 24px;
   line-height: 1.55;
 }
 
@@ -474,7 +474,7 @@ canvas {
   display: block;
   margin-top: 10px;
   color: #687b73;
-  font: 15px/1.5 'Pixelify Sans', ui-monospace, monospace;
+  font: 18px/1.5 'Pixelify Sans', ui-monospace, monospace;
   letter-spacing: 0.09em;
 }
 
@@ -499,7 +499,7 @@ canvas {
   place-items: center;
   color: #69716d;
   background-image: linear-gradient(135deg, transparent 49.5%, #272d2a 50%, transparent 50.5%), linear-gradient(45deg, transparent 49.5%, #272d2a 50%, transparent 50.5%);
-  font: 17px/1 'Pixelify Sans', ui-monospace, monospace;
+  font: 20px/1 'Pixelify Sans', ui-monospace, monospace;
   letter-spacing: 0.16em;
 }
 
@@ -578,7 +578,7 @@ canvas {
   top: 88px;
   width: 100px;
   color: inherit;
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 500;
   letter-spacing: 0.16em;
 }
@@ -590,12 +590,16 @@ canvas {
 
 .life-controls { right: 28px; bottom: 24px; gap: 7px; }
 .life-controls button {
-  padding: 8px 11px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
   border-color: #343a37;
   border-radius: 2px;
   background: rgba(8, 9, 9, 0.82);
   color: #858b89;
-  font-size: 15px;
+  font-size: 23px;
   font-weight: 400;
   letter-spacing: 0.08em;
 }
@@ -625,9 +629,9 @@ canvas {
 
 @media (max-width: 720px) {
   .portfolio-card {
-    width: calc(100% - 48px);
-    margin: 92px 24px 100px;
-    padding: 12px 0;
+    width: calc(100% - 32px);
+    margin: 92px 16px 180px;
+    padding: 12px 0 160px;
     box-shadow: 0 0 48px 38px rgba(8, 9, 9, 0.84);
   }
   .portfolio-card header { margin-bottom: 60px; }
