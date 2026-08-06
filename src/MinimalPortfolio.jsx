@@ -7,21 +7,21 @@ const projects = [
     detail: 'iPhone video to VR-ready Gaussian splats in under two minutes.',
     stack: 'PYTORCH / SWIFT / UNITY / FASTAPI',
     href: 'https://github.com/LargoLardo/reminiscence',
-    image: '',
+    image: '/reminiscence.png',
   },
   {
     title: "Hold’em AI",
     detail: 'An MCCFR poker solver that learned to beat heuristic agents.',
     stack: 'NUMPY / REACT / FLASK',
     href: 'https://github.com/LargoLardo/lard_plays_poker',
-    image: '',
+    image: '/poker.png',
   },
   {
     title: 'Chess Engine',
     detail: 'A policy/value network paired with MCTS, trained through self-play.',
     stack: 'PYTORCH / MCTS / VITE',
     href: 'https://github.com/LargoLardo/lard_plays_chess',
-    image: '',
+    image: '/chess.png',
   },
 ]
 
@@ -222,7 +222,7 @@ export default function MinimalPortfolio() {
             {projects.map((project, index) => (
               <a key={project.title} href={project.href} target="_blank" rel="noreferrer" className="entry project">
                 {project.image
-                  ? <img className="project-image" src={project.image} alt={`${project.title} preview`} />
+                  ? <img className="project-image" src={project.image} alt={`${project.title} preview`} loading="lazy" decoding="async" />
                   : <div className="project-placeholder" aria-label={`${project.title} image placeholder`}>PROJECT IMAGE / 0{index + 1}</div>}
                 <div className="entry-heading"><h3>{project.title}</h3><span aria-hidden="true">↗</span></div>
                 <p>{project.detail}</p>
