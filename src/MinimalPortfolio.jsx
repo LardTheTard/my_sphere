@@ -7,18 +7,21 @@ const projects = [
     detail: 'iPhone video to VR-ready Gaussian splats in under two minutes.',
     stack: 'PYTORCH / SWIFT / UNITY / FASTAPI',
     href: 'https://github.com/LargoLardo/reminiscence',
+    image: '',
   },
   {
     title: "Hold’em AI",
     detail: 'An MCCFR poker solver that learned to beat heuristic agents.',
     stack: 'NUMPY / REACT / FLASK',
     href: 'https://github.com/LargoLardo/lard_plays_poker',
+    image: '',
   },
   {
     title: 'Chess Engine',
     detail: 'A policy/value network paired with MCTS, trained through self-play.',
     stack: 'PYTORCH / MCTS / VITE',
     href: 'https://github.com/LargoLardo/lard_plays_chess',
+    image: '',
   },
 ]
 
@@ -72,7 +75,7 @@ function LifeCanvas({ running, reset, boardRef }) {
         lastStep = time
       }
       context.clearRect(0, 0, innerWidth, innerHeight)
-      context.fillStyle = '#26382f'
+      context.fillStyle = '#3f5f50'
       for (let i = 0; i < state.cells.length; i += 1) {
         if (!state.cells[i]) continue
         const x = (i % state.columns) * state.cellSize
@@ -167,8 +170,11 @@ export default function MinimalPortfolio() {
         <div className="section-row">
           <h2>PROJECTS</h2>
           <div className="entries">
-            {projects.map((project) => (
+            {projects.map((project, index) => (
               <a key={project.title} href={project.href} target="_blank" rel="noreferrer" className="entry project">
+                {project.image
+                  ? <img className="project-image" src={project.image} alt={`${project.title} preview`} />
+                  : <div className="project-placeholder" aria-label={`${project.title} image placeholder`}>PROJECT IMAGE / 0{index + 1}</div>}
                 <div className="entry-heading"><h3>{project.title}</h3><span aria-hidden="true">↗</span></div>
                 <p>{project.detail}</p>
                 <small>{project.stack}</small>
